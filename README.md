@@ -400,10 +400,14 @@ MetaMask 是一款插件形式的以太坊轻客户端，开发过程中使用 M
 在接受隐私说明后，会出现页面如下：
 ![主界面](https://img.learnblockchain.cn/2018/metamask-initial.png!wl)
 
-这里我们通过还原一个 Ganache 为我们创建好的钱包，作为我们的开发测试钱包。点击页面的** Import Existing DEN**，输入 Ganache 显示的助记词。
+这里我们通过还原一个 Ganache 为我们创建好的钱包，作为我们的开发测试钱包。点击页面的 Import Existing DEN，输入 Ganache 显示的助记词[**助剂记在我们使用 Ganache 开启私链时显示的 HD Wallet下面的 Mnemonic**]。
 
 ```
 candy maple cake sugar pudding cream honey rich smooth crumble sweet treat
+
+---------------------
+每个人生成的都不一样，类似 密保问题？我的是
+worry night square whisper luggage route dinner permit dad crash cart grass
 ```
 
 然后自己想要的密码，点击 OK。
@@ -450,6 +454,8 @@ candy maple cake sugar pudding cream honey rich smooth crumble sweet treat
 ```bash
 > npm run dev
 ```
+
+![npm启动服务截图](doc/npm_start_service.png)
 
 会自动打开浏览器显示我们的 dapp，如本文的第一张图。
 现在领养一直宠物看看，当我们点击 **Adopt** 时，MetaMask 会提示我们交易的确认，如图：
