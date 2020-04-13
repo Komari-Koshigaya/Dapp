@@ -3,6 +3,6 @@ node_modules
 
 # truffle
 build
-test
+# test
 .github
 .gitattributes

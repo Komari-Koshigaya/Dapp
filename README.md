@@ -1,6 +1,6 @@
 # Truffle 教程：教你开发、部署第一个去中心化应用(Dapp) - 宠物商店
 
-> 原文链接： https://learnblockchain.cn/2018/01/12/first-dapp     2018-1-12
+> 原文链接： https://learnblockchain.cn/2018/01/12/first-dapp     2018-1-12  [原帖部分代码由于编译器版本问题需要修改]
 >
 > 子链接：[开发链上记事本 ](https://learnblockchain.cn/2019/03/30/dapp_noteOnChain/)   2019-03-20
 >
@@ -161,9 +161,28 @@ Ganache 启动之后是这样：
 >
 > ![命令行启动ganache](doc/ganache-cli_start.png)
 >
-> 通过该方法启动后，由于ganache-cli需要监听交易信息，因此需要另开一个session。
+> 通过该方法启动后，由于ganache-cli需要监听交易信息，因此需要另开一个终端。
+>
+> #### 执行下一步部署时，由于命令行开启的端口不一致，需要修改 truffle-config.js 对应的port
+>
+> 根据上图客户端的监听地址修改truffle-config.js为以下：
+>
+> module.exports = {
+>   // See <http://truffleframework.com/docs/advanced/configuration>
+>   // for more about customizing your Truffle configuration!
+>   networks: {
+>     development: {
+>       host: "127.0.0.1",
+>       port: 7545,
+>       network_id: "*" // Match any network id
+>     },
+>     develop: {
+>       port: 8545
+>     }
+>   }
+> };
 
-接下来执行部署命令：
+接下来执行部署命令(需要在项目的根目录)：
 
 ```bash
 > truffle  migrate
@@ -171,28 +190,15 @@ Ganache 启动之后是这样：
 
 执行后，有一下类似的输出，
 
-```
-Using network 'develop'.
-
-Running migration: 1_initial_migration.js
-  Deploying Migrations...
-  ... 0x3076b7dac65afc44ec51508bf6f2b6894f833f0f9560ecad2d6d41ed98a4679f
-  Migrations: 0x8cdaf0cd259887258bc13a92c0a6da92698644c0
-Saving successful migration to network...
-  ... 0xd7bc86d31bee32fa3988f1c1eabce403a1b5d570340a3a9cdba53a472ee8c956
-Saving artifacts...
-Running migration: 2_deploy_contracts.js
-  Deploying Adoption...
-  ... 0x2c6ab4471c225b5473f2079ee42ca1356007e51d5bb57eb80bfeb406acc35cd4
-  Adoption: 0x345ca3e014aaf5dca488057592ee47305d9b3e10
-Saving successful migration to network...
-  ... 0xf36163615f41ef7ed8f4a8f192149a0bf633fe1a2398ce001bf44c43dc7bdda0
-Saving artifacts...
-```
+![部署截图](doc/truffle_migrate.png)
 
 在打开的 Ganache 里可以看到区块链状态的变化，现在产生了 4 个区块。
 ![4 个区块](https://img.learnblockchain.cn/2018/ganache-migrated.png!wl)
 这时说明已经智能合约已经部署好了。
+
+> ganache-cli启动的命令行终端，可以看到也产生了4笔交易和4个区块
+>
+> ![部署结果](doc/truffle_migrate_1.png)
 
 ## 测试
 
@@ -221,7 +227,7 @@ contract TestAdoption {
   // 宠物所有者测试用例
   function testGetAdopterAddressByPetId() public {
     // 期望领养者的地址就是本合约地址，因为交易是由测试合约发起交易，
-    address expected = this;
+    address expected = address(this);//原帖使用不符合当前编译器版本规范
     address adopter = adoption.adopters(8);
     Assert.equal(adopter, expected, "Owner of pet ID 8 should be recorded.");
   }
@@ -229,7 +235,7 @@ contract TestAdoption {
     // 测试所有领养者
   function testGetAdopterAddressByPetIdInArray() public {
   // 领养者的地址就是本合约地址
-    address expected = this;
+    address expected = address(this);//原帖使用不符合当前编译器版本规范
     address[16] memory adopters = adoption.getAdopters();
     Assert.equal(adopters[8], expected, "Owner of pet ID 8 should be recorded.");
   }
@@ -250,23 +256,11 @@ truffle test
 
 如果测试通过，则终端输出：
 
-```
-Using network 'develop'.
+![测试结果](doc/truffle_test.png)
 
-Compiling ./contracts/Adoption.sol...
-Compiling ./test/TestAdoption.sol...
-Compiling truffle/Assert.sol...
-Compiling truffle/DeployedAddresses.sol...
-
-
-  TestAdoption
-    ✓ testUserCanAdoptPet (62ms)
-    ✓ testGetAdopterAddressByPetId (53ms)
-    ✓ testGetAdopterAddressByPetIdInArray (73ms)
-
-
-  3 passing (554ms)
-```
+> ganache-cli终端窗口显示：
+>
+> ![ganache cli显示的测试结果](doc/truffle_test_1.png)
 
 ## 创建用户接口和智能合约交互
 
