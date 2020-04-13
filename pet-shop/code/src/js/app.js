@@ -4,6 +4,7 @@ App = {
 
   init: async function() {
     // Load pets.
+    console.log("load pets\n")
     $.getJSON('../pets.json', function(data) {
       var petsRow = $('#petsRow');
       var petTemplate = $('#petTemplate');

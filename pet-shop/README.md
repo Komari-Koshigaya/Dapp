@@ -438,7 +438,7 @@ worry night square whisper luggage route dinner permit dad crash cart grass
 ./src 是网站文件目录
 ./build/contracts 是合约输出目录
 
-以此同时，在 package.json 文件的 scripts 中添加了 dev 命令：
+与此同时，在 package.json 文件的 scripts 中添加了 dev 命令：
 
 ```json
 "scripts": {
