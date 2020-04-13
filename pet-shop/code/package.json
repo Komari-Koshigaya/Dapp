@@ -2,7 +2,6 @@
   "name": "pet-shop",
   "version": "1.0.0",
   "description": "",
-  // main指定了程序的主入口文件，require('moduleName') 就会加载这个文件。这个字段的默认值是模块根目录下面的 index.js。
   "main": "truffle.js",
   "directories": {
     "test": "test"
