@@ -167,7 +167,6 @@ Ganache 启动之后是这样：
 
 ```bash
 > truffle  migrate
-
 ```
 
 执行后，有一下类似的输出，
