@@ -134,6 +134,48 @@ Compiling ./contracts/Adoption.sol...
 Writing artifacts to ./build/contracts
 ```
 
+### 开启私链
+
+在执行部署之前，需要确保有一个区块链运行， 可以使用
+[Ganache](http://truffleframework.com/ganache/) 来开启一个私链来进行开发测试，默认会在 7545 端口上运行一个开发链。
+Ganache 启动之后是这样：
+![Ganache 启动之后是这样](https://img.learnblockchain.cn/2018/ganache-initial.png!wl)
+
+> 若使用命令行版本ganache-cli，启动ganache-cli操作如下：
+>
+> 输入`ganache-cli`，显示如下，ganache默认创建10个账户，每个账户有100个ETH。
+>
+> ![命令行启动ganache](C:/Users/Araragi/AppData/Local/Temp/Mxt201/RemoteFiles/8330356_5_59/doc/ganache-cli_start.png)
+>
+> 通过该方法启动后，由于ganache-cli需要监听交易信息，因此需要另开一个终端。
+>
+> #### 执行下一步部署时，由于命令行开启的端口不一致，需要修改 truffle-config.js 对应的port
+>
+> 根据上图客户端的监听地址修改truffle-config.js为以下：
+>
+> module.exports = {
+> // See <http://truffleframework.com/docs/advanced/configuration>
+> // for more about customizing your Truffle configuration!
+> networks: {
+>  development: {
+>    host: "127.0.0.1",
+>    port: 7545,
+>    network_id: "*" // Match any network id
+>  },
+>  develop: {
+>    port: 8545
+>  }
+> }
+> };
+>
+> ### ganache-cli指定端口和监听地址
+>
+> ganache-cli -p 7878   # 指定端口为 7878
+>
+> ganache-cli -h 127.0.0.1  # 将启动ganache-cli在地址`127.0.0.1`监听，这样只有本机上的应用才可以访问仿真节点
+>
+> ganache-cli -h 127.0.0.1 -p 7878  # 启动ganache-cli在地址`127.0.0.1`的7878端口监听
+
 ### 部署
 
 编译之后，就可以部署到区块链上。
@@ -149,38 +191,6 @@ module.exports = function(deployer) {
   deployer.deploy(Adoption);
 };
 ```
-
-在执行部署之前，需要确保有一个区块链运行， 可以使用
-[Ganache](http://truffleframework.com/ganache/) 来开启一个私链来进行开发测试，默认会在 7545 端口上运行一个开发链。
-Ganache 启动之后是这样：
-![Ganache 启动之后是这样](https://img.learnblockchain.cn/2018/ganache-initial.png!wl)
-
-> 若使用命令行版本ganache-cli，启动ganache-cli操作如下：
->
-> 输入`ganache-cli`，显示如下，ganache默认创建10个账户，每个账户有100个ETH。
->
-> ![命令行启动ganache](doc/ganache-cli_start.png)
->
-> 通过该方法启动后，由于ganache-cli需要监听交易信息，因此需要另开一个终端。
->
-> #### 执行下一步部署时，由于命令行开启的端口不一致，需要修改 truffle-config.js 对应的port
->
-> 根据上图客户端的监听地址修改truffle-config.js为以下：
->
-> module.exports = {
->   // See <http://truffleframework.com/docs/advanced/configuration>
->   // for more about customizing your Truffle configuration!
->   networks: {
->     development: {
->       host: "127.0.0.1",
->       port: 7545,
->       network_id: "*" // Match any network id
->     },
->     develop: {
->       port: 8545
->     }
->   }
-> };
 
 接下来执行部署命令(需要在项目的根目录)：
 

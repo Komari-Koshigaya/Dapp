@@ -44,7 +44,7 @@ App = {
     }
     // If no injected web3 instance is detected, fall back to Ganache
     else {
-      App.web3Provider = new Web3.providers.HttpProvider('http://localhost:8545');
+      App.web3Provider = new Web3.providers.HttpProvider('http://127.0.0.1:8545');
     }
     web3 = new Web3(App.web3Provider);
 
@@ -80,6 +80,7 @@ App = {
 	  // 调用合约的getAdopters(), 用call读取信息不用消耗gas
 	  return adoptionInstance.getAdopters.call();
 	}).then(function(adopters) {
+	  console.log("尝试禁用领养按钮");
 	  for (i = 0; i < adopters.length; i++) {
 	    if (adopters[i] !== '0x0000000000000000000000000000000000000000') {
 	      $('.panel-pet').eq(i).find('button').text('Success').attr('disabled', true);
@@ -113,7 +114,7 @@ App = {
       }).then(function(result) {
         return App.markAdopted();//成功了就禁用按钮
       }).catch(function(err) {
-        console.log(err.message);
+        console.log("禁用领养按钮失败\n" + err.message);
       });
     });
   }
