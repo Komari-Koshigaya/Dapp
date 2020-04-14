@@ -20,6 +20,7 @@ App = {
         petsRow.append(petTemplate.html());
       }
     });
+    // $(document).on('click', '.btn-adopt', App.handleAdopt);
 
     return await App.initWeb3();
   },
@@ -30,7 +31,8 @@ App = {
       App.web3Provider = window.ethereum;
       try {
         // Request account access
-        await window.ethereum.enable();
+        // await window.ethereum.enable();//该方法被抛弃
+        await window.ethereum.send();//ethereum.enable()被弃用，改成ethereum.send();
       } catch (error) {
         // User denied account access...
         console.error("User denied account access")
@@ -89,13 +91,13 @@ App = {
   },
 
   handleAdopt: function(event) {
-    event.preventDefault();
+    event.preventDefault();//禁止触发默认操作，如果有的话
 
     var petId = parseInt($(event.target).data('id'));
-
 	var adoptionInstance;
 
     // 获取用户账号
+    console.log("有客户想领养宠物 " + petId + " 号");
     web3.eth.getAccounts(function(error, accounts) {
       if (error) {
         console.log(error);
@@ -109,7 +111,7 @@ App = {
         // 发送交易领养宠物
         return adoptionInstance.adopt(petId, {from: account});
       }).then(function(result) {
-        return App.markAdopted();
+        return App.markAdopted();//成功了就禁用按钮
       }).catch(function(err) {
         console.log(err.message);
       });
