@@ -31,8 +31,8 @@ App = {
       App.web3Provider = window.ethereum;
       try {
         // Request account access
-        // await window.ethereum.enable();//该方法被抛弃
-        await window.ethereum.send();//ethereum.enable()被弃用，改成ethereum.send();
+        await window.ethereum.enable();//该方法被抛弃
+        // const accounts = await window.ethereum.send('eth_requestAccounts');//ethereum.enable()被弃用，改成ethereum.send();
       } catch (error) {
         // User denied account access...
         console.error("User denied account access")
@@ -80,14 +80,13 @@ App = {
 	  // 调用合约的getAdopters(), 用call读取信息不用消耗gas
 	  return adoptionInstance.getAdopters.call();
 	}).then(function(adopters) {
-	  console.log("尝试禁用领养按钮");
 	  for (i = 0; i < adopters.length; i++) {
 	    if (adopters[i] !== '0x0000000000000000000000000000000000000000') {
 	      $('.panel-pet').eq(i).find('button').text('Success').attr('disabled', true);
 	    }
 	  }
 	}).catch(function(err) {
-	  console.log(err.message);
+	  console.log( "禁用领养按钮失败!\n" + err.message);
 	});
   },
 
@@ -98,13 +97,13 @@ App = {
 	var adoptionInstance;
 
     // 获取用户账号
-    console.log("有客户想领养宠物 " + petId + " 号");
     web3.eth.getAccounts(function(error, accounts) {
       if (error) {
         console.log(error);
       }
 
       var account = accounts[0];
+	  console.log("客户 " + account + " 想领养宠物 " + petId + " 号");
 
       App.contracts.Adoption.deployed().then(function(instance) {
         adoptionInstance = instance;
@@ -112,9 +111,10 @@ App = {
         // 发送交易领养宠物
         return adoptionInstance.adopt(petId, {from: account});
       }).then(function(result) {
+      	console.log("领养成功，准备禁用领养按钮");
         return App.markAdopted();//成功了就禁用按钮
       }).catch(function(err) {
-        console.log("禁用领养按钮失败\n" + err.message);
+        console.log("领养宠物 " + petId + " 号失败\n" + err.message);
       });
     });
   }

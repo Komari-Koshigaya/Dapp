@@ -145,7 +145,7 @@ Ganache 启动之后是这样：
 >
 > 输入`ganache-cli`，显示如下，ganache默认创建10个账户，每个账户有100个ETH。
 >
-> ![命令行启动ganache](C:/Users/Araragi/AppData/Local/Temp/Mxt201/RemoteFiles/8330356_5_59/doc/ganache-cli_start.png)
+> ![命令行启动ganache](doc/ganache-cli_start.png)
 >
 > 通过该方法启动后，由于ganache-cli需要监听交易信息，因此需要另开一个终端。
 >
@@ -154,27 +154,39 @@ Ganache 启动之后是这样：
 > 根据上图客户端的监听地址修改truffle-config.js为以下：
 >
 > module.exports = {
-> // See <http://truffleframework.com/docs/advanced/configuration>
-> // for more about customizing your Truffle configuration!
-> networks: {
->  development: {
->    host: "127.0.0.1",
->    port: 7545,
->    network_id: "*" // Match any network id
->  },
->  develop: {
->    port: 8545
->  }
-> }
+>   // See <http://truffleframework.com/docs/advanced/configuration>
+>   // for more about customizing your Truffle configuration!
+>   networks: {
+>     development: {
+>       host: "127.0.0.1",
+>       **port: 8545,**
+>       network_id: "*" // Match any network id
+>     },
+>     develop: {
+>       port: 7545
+>     }
+>   }
 > };
 >
-> ### ganache-cli指定端口和监听地址
+> ### ganache-cli启动选项
 >
-> ganache-cli -p 7878   # 指定端口为 7878
->
-> ganache-cli -h 127.0.0.1  # 将启动ganache-cli在地址`127.0.0.1`监听，这样只有本机上的应用才可以访问仿真节点
->
-> ganache-cli -h 127.0.0.1 -p 7878  # 启动ganache-cli在地址`127.0.0.1`的7878端口监听
+> - -a 或 –accounts： 指定启动时要创建的测试账户数量。
+> - -e 或 –defaultBalanceEther： 分配给每个测试账户的ether数量，默认值为100。
+> - -b 或r –blockTime： 指定自动挖矿的blockTime，以秒为单位。默认值为0，表示不进行自动挖矿。
+> - -d 或 –deterministic： 基于预定的助记词（`mnemonic`）生成固定的测试账户地址。
+> - -n 或 –secure： 默认锁定所有测试账户，有利于进行第三方交易签名。
+> - -m 或 –mnemonic： 用于生成测试账户地址的助记词。
+> - **-p 或 –port： 设置监听端口，默认值为8545。**
+> - **-h 或 –hostname： 设置监听主机，默认值同NodeJS的`server.listen()`。**
+> - -s 或 –seed： 设置生成助记词的种子。.
+> - -g 或 –gasPrice： 设定Gas价格，默认值为20000000000。
+> - -l 或 –gasLimit： 设定Gas上限，默认值为90000。
+> - -f 或 –fork： 从一个运行中的以太坊节点客户端软件的指定区块分叉。输入值应当是该节点旳HTTP地址和端口，例如`http://localhost:8545`。 可选使用@标记来指定具体区块，例如：`http://localhost:8545@1599200`。
+> - -i 或 –networkId：指定网络id。默认值为当前时间，或使用所分叉链的网络id。
+> - **–db： 设置保存链数据的目录。如果该路径中已经有链数据，ganache-cli将用它初始化链而不是重新创建。**
+> - –debug：输出VM操作码，用于调试。
+> - –mem：输出ganache-cli内存使用统计信息，这将替代标准的输出信息。
+> - –noVMErrorsOnRPCResponse：不把失败的交易作为RCP错误发送。开启这个标志使错误报告方式兼容其他的节点客户端，例如geth和Parity。
 
 ### 部署
 
@@ -412,13 +424,11 @@ MetaMask 是一款插件形式的以太坊轻客户端，开发过程中使用 M
 
 这里我们通过还原一个 Ganache 为我们创建好的钱包，作为我们的开发测试钱包。点击页面的 Import Existing DEN，输入 Ganache 显示的助记词[**助剂记在我们使用 Ganache 开启私链时显示的 HD Wallet下面的 Mnemonic**]。
 
-```
-candy maple cake sugar pudding cream honey rich smooth crumble sweet treat
-
----------------------
-每个人生成的都不一样，类似 密保问题？我的是
-worry night square whisper luggage route dinner permit dad crash cart grass
-```
+> 助记词类似  
+>
+> dirt long recycle point venue fitness enough twist theory fashion napkin spawn
+>
+> 这里的助记词一定用你的 ganache 私链上的，否则 MetaMask 钱包无法链接到本地的私链，因此无法显示余额
 
 然后自己想要的密码，点击 OK。
 如图：
