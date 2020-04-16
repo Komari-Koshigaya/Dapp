@@ -134,7 +134,7 @@ Compiling ./contracts/Adoption.sol...
 Writing artifacts to ./build/contracts
 ```
 
-### 开启私链
+### ganache开启私链
 
 在执行部署之前，需要确保有一个区块链运行， 可以使用
 [Ganache](http://truffleframework.com/ganache/) 来开启一个私链来进行开发测试，默认会在 7545 端口上运行一个开发链。
@@ -224,6 +224,8 @@ module.exports = function(deployer) {
 
 ## 测试
 
+### 使用测试用例测试
+
 现在我们来测试一下智能合约，测试用例可以用 JavaScript 或 Solidity 来编写，这里使用 Solidity。
 
 在 `test` 目录下新建一个 `TestAdoption.sol`，[编写测试合约](https://learnblockchain.cn/docs/truffle/testing/writing-tests-in-solidity.html)
@@ -268,7 +270,7 @@ contract TestAdoption {
 
 TestAdoption 合约中添加 adopt 的测试用例。
 
-### 运行测试用例
+#### 运行测试用例
 
 在终端中，执行
 
@@ -283,6 +285,24 @@ truffle test
 > ganache-cli终端窗口显示：
 >
 > ![ganache cli显示的测试结果](doc/truffle_test_1.png)
+
+### 在truffle console进行手动测试
+
+> 测试之前需要 启动 **ganache-cli** 和 **truffle migrate** 进行部署
+>
+> ```js
+> truffle console
+> truffle(development)> var contract
+> undefined
+> truffle(development)> Adoption.deployed().then(function(instance){contract= instance;});
+> undefined
+> truffle(development)> contract.adopt(15)
+> //测试领养
+> truffle(development)> contract.getAdopters()
+> //获取宠物的领养者信息
+> ```
+
+![truffle console测试结果](doc/truffle_console_test.png)
 
 ## 创建用户接口和智能合约交互
 
