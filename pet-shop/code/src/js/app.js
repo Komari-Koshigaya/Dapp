@@ -20,7 +20,6 @@ App = {
         petsRow.append(petTemplate.html());
       }
     });
-    // $(document).on('click', '.btn-adopt', App.handleAdopt);
 
     return await App.initWeb3();
   },

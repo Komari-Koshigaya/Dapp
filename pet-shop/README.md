@@ -207,7 +207,9 @@ module.exports = function(deployer) {
 接下来执行部署命令(需要在项目的根目录)：
 
 ```bash
-> truffle  migrate
+truffle  migrate   # 不指定network默认是启用 development
+
+truffle migrate --network ropsten  # 此命令用于选择网络运行，  ropsten需事先在  truffle.js 的networks字段里配置
 ```
 
 执行后，有一下类似的输出，
