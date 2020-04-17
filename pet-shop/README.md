@@ -511,3 +511,20 @@ MetaMask 是一款插件形式的以太坊轻客户端，开发过程中使用 M
 
 好了，恭喜你，即将成为一名去中心化式应用开发者的你已经成为迈出了坚实的一步。
 还可以阅读另一篇[开发链上记事本](https://learnblockchain.cn/2019/03/30/dapp_noteOnChain/) 进一步巩固 DApp 开发。
+
+# 本项目 的使用方法
+
+> ```bash
+> cd pet-shop/code  # 进入代码目录
+> npm install  # 安装依赖
+> # truffle compile  #  下面执行报错，则先执行该条指令
+> truffle migrate  # 部署
+> npm run dev  # 运行
+> ```
+>
+> 1.若下载的项目代码没有 node_modules, 则先执行 **npm install** 安装依赖
+>
+> 2.若出现以下错误，则先删除 node_modules 目录，再执行 **npm install** 
+>
+> ![错误提示](doc/npm_run_dev_error.png)
+
