@@ -37,7 +37,7 @@ Pete 有一个宠物店，有 16 只宠物，他想开发一个去中心化应�
 
 ## 环境搭建
 
-1. 安装 [Node](https://nodejs.org/en/download/)   node.js，安装参考 [node.js安装]( https://github.com/Komari-Koshigaya/general-command/#node.js)
+1. 安装 [Node](https://nodejs.org/en/download/)   node.js，安装参考 [node.js安装]( https://github.com/Komari-Koshigaya/general-command/#nodejs)
 2. 安装 Truffle ：`npm install -g truffle`    #  truffle -v 显示版本号则代表安装成功
 3. 安装 [Ganache](http://truffleframework.com/ganache/) 官网进不去可 [github编译](https://github.com/trufflesuite/ganache)   
 
@@ -515,7 +515,7 @@ MetaMask 是一款插件形式的以太坊轻客户端，开发过程中使用 M
 # 本项目 的使用方法
 
 > ```bash
-> cd pet-shop/code  # 进入代码目录
+> cd code  # 进入源代码目录
 > npm install  # 安装依赖
 > # truffle compile  #  下面执行报错，则先执行该条指令
 > truffle migrate  # 部署
@@ -527,4 +527,3 @@ MetaMask 是一款插件形式的以太坊轻客户端，开发过程中使用 M
 > 2.若出现以下错误，则先删除 node_modules 目录，再执行 **npm install** 
 >
 > ![错误提示](doc/npm_run_dev_error.png)
-
