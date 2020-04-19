@@ -74,6 +74,12 @@ Commands:
 这一步需要等待一会
 
 > 也可以使用 truffle init 来创建一个全新的项目。Truffle 的使用可以参阅[这份文档](https://learnblockchain.cn/docs/truffle/) 。
+>
+> ps：遇到如下错误，目前没有很好的方案，只能通过
+>
+> $git clone [https://github.com/truffle-box/pet-shop-box](https://github.com/truffle-box/pet-shop-box)  来曲线救国，复制的项目solidity版本只有0.4
+>
+> ![truffle unbox出错](doc/truffle_unbox_error.png)
 
 ## 项目目录结构
 
