@@ -38,8 +38,19 @@ Pete 有一个宠物店，有 16 只宠物，他想开发一个去中心化应�
 ## 环境搭建
 
 1. 安装 [Node](https://nodejs.org/en/download/)   node.js，安装参考 [node.js安装]( https://github.com/Komari-Koshigaya/general-command/#nodejs)
+
 2. 安装 Truffle ：`npm install -g truffle`    #  truffle -v 显示版本号则代表安装成功
+
 3. 安装 [Ganache](http://truffleframework.com/ganache/) 官网进不去可 [github编译](https://github.com/trufflesuite/ganache)   
+
+   ~~~bash
+   # 下载源码编译成图形界面的 exe
+   git clone git@github.com:/trufflesuite/ganache
+   cd ganache
+   npm install windows-build-tools
+   npm install
+   npm start
+   ~~~
 
 > Ganache（或 Ganache CLI）已经取代了 testrpc，Ganache是一个可以部署到私链的以太坊客户端，用于测试和开发的快速以太坊RPC客户端，其目前有两个版本：图形界面的版本(windows)和命令行版本。
 >
