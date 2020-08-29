@@ -156,7 +156,7 @@ Writing artifacts to ./build/contracts
 在执行部署之前，需要确保有一个区块链运行， 可以使用
 [Ganache](http://truffleframework.com/ganache/) 来开启一个私链来进行开发测试，默认会在 7545 端口上运行一个开发链。
 Ganache 启动之后是这样：
-![Ganache 启动之后是这样](https://img.learnblockchain.cn/2018/ganache-initial.png!wl)
+![Ganache 启动之后是这样](doc/ganache-initial.png)
 
 > 若使用命令行版本ganache-cli，启动ganache-cli操作如下：
 >
@@ -229,12 +229,16 @@ truffle  migrate   # 不指定network默认是启用 development
 truffle migrate --network ropsten  # 此命令用于选择网络运行，  ropsten需事先在  truffle.js 的networks字段里配置
 ```
 
-执行后，有一下类似的输出，
+执行后，有以下类似的输出，
 
 ![部署截图](doc/truffle_migrate.png)
 
+> 如果ganache开启后，truffle migrate报错连不上ganache，可以尝试修改ganache的主机名：  ⚙->server->hostname ,改完后点击save and restart
+>
+> ![image-20200829093234052](doc/truffle_migrate_2.png)
+
 在打开的 Ganache 里可以看到区块链状态的变化，现在产生了 4 个区块。
-![4 个区块](https://img.learnblockchain.cn/2018/ganache-migrated.png!wl)
+![image-20200829093527680](doc/ganache_mine.png)
 这时说明已经智能合约已经部署好了。
 
 > ganache-cli启动的命令行终端，可以看到也产生了4笔交易和4个区块
@@ -454,14 +458,15 @@ initContract: function() {
 
 ### 安装 MetaMask
 
-MetaMask 是一款插件形式的以太坊轻客户端，开发过程中使用 MetaMask 和我们的 dapp 进行交互是个很好的选择，通过此[链接](https://metamask.io/)安装，安装完成后，浏览器工具条会显示一个小狐狸图标。
+MetaMask 是一款插件形式的以太坊轻客户端，开发过程中使用 MetaMask 和我们的 dapp 进行交互是个很好的选择，通过此[谷歌商店](https://metamask.io/)安装或者[搜索 metamask](https://crxdl.com/)，安装完成后，浏览器工具条会显示一个小狐狸图标。
 
 ### 配置钱包
 
 在接受隐私说明后，会出现页面如下：
-![主界面](https://img.learnblockchain.cn/2018/metamask-initial.png!wl)
 
-这里我们通过还原一个 Ganache 为我们创建好的钱包，作为我们的开发测试钱包。点击页面的 Import Existing DEN，输入 Ganache 显示的助记词[**助剂记在我们使用 Ganache 开启私链时显示的 HD Wallet下面的 Mnemonic**]。
+![image-20200829095631794](doc/metamask_init.png)
+
+这里我们通过还原一个 Ganache 为我们创建好的钱包，作为我们的开发测试钱包。点击页面的 Import Existing DEN，输入 Ganache 显示的助记词[**助记词在我们使用 Ganache 开启私链时显示的 HD Wallet下面的 Mnemonic**]。
 
 > 助记词类似  
 >
@@ -469,14 +474,20 @@ MetaMask 是一款插件形式的以太坊轻客户端，开发过程中使用 M
 >
 > 这里的助记词一定用你的 ganache 私链上的，否则 MetaMask 钱包无法链接到本地的私链，因此无法显示余额
 
-然后自己想要的密码，点击 OK。
-如图：
-![设置密码图](https://img.learnblockchain.cn/2018/metamask-seed.png!wl)
+然后输入自己想要的密码，点击 OK。
+
 
 ### 连接开发区块链网络
 
-默认连接的是以太坊主网（左上角显示），选择 **Custom RPC**，添加一个网络：**http://127.0.0.1:7545**，点返回后，显示如下：
-![链接网络](https://img.learnblockchain.cn/2018/metamask-account1.png!wl)
+默认连接的是以太坊主网（左上角显示），选择 **Custom RPC**，添加一个网络：**http://127.0.0.1:7545**，如图：
+
+![image-20200829100116641](doc/metamask_connect_ganache.png)
+
+右上角下拉选中刚刚创建的RPC，可以看到ganache上的个人账户详情：
+
+![image-20200829100353050](doc/metamask_connect_ganache_2.png)
+
+
 这是左上角显示为 **Private Network**，账号是 Ganache 中默认的第一个账号。
 
 至此 MetaMask 的安装，配置已经完成。
