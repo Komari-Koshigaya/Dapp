@@ -18,8 +18,7 @@
 阅读本文前，你应该对以太坊、智能合约有所了解，如果你还不了解，建议你先看[以太坊是什么](https://learnblockchain.cn/2017/11/20/whatiseth/)
 除此之外，你最好还了解一些 HTML 及 JavaScript 知识。
 
-本文通过实例教大家来开发去中心化应用，应用效果如图：
-![应用效果图](https://img.learnblockchain.cn/2018/Petshop.jpg!wl/scale/45)
+本文通过实例教大家来开发去中心化应用，应用效果如图：![应用效果图](doc/pet_shop.png)
 
 从本文，你可以学习到：
 
@@ -156,7 +155,8 @@ Writing artifacts to ./build/contracts
 在执行部署之前，需要确保有一个区块链运行， 可以使用
 [Ganache](http://truffleframework.com/ganache/) 来开启一个私链来进行开发测试，默认会在 7545 端口上运行一个开发链。
 Ganache 启动之后是这样：
-![Ganache 启动之后是这样](doc/ganache-initial.png)
+
+![Ganache 启动之后是这样](doc/ganache_init.png)
 
 > 若使用命令行版本ganache-cli，启动ganache-cli操作如下：
 >
@@ -170,20 +170,22 @@ Ganache 启动之后是这样：
 >
 > 根据上图客户端的监听地址修改truffle-config.js为以下：
 >
+> ~~~js
 > module.exports = {
 >   // See <http://truffleframework.com/docs/advanced/configuration>
 >   // for more about customizing your Truffle configuration!
 >   networks: {
 >     development: {
 >       host: "127.0.0.1",
->       **port: 8545,**
+>       port: 7545,
 >       network_id: "*" // Match any network id
 >     },
 >     develop: {
->       port: 7545
+>       port: 8545
 >     }
 >   }
 > };
+> ~~~
 >
 > ### ganache-cli启动选项
 >
@@ -476,10 +478,9 @@ MetaMask 是一款插件形式的以太坊轻客户端，开发过程中使用 M
 
 然后输入自己想要的密码，点击 OK。
 
+### 连接区块链开发网络
 
-### 连接开发区块链网络
-
-默认连接的是以太坊主网（左上角显示），选择 **Custom RPC**，添加一个网络：**http://127.0.0.1:7545**，如图：
+默认连接的是以太坊主网（左上角显示），选择 **Custom RPC**，添加一个网络 **http://127.0.0.1:7545**，如图：
 
 ![image-20200829100116641](doc/metamask_connect_ganache.png)
 
@@ -527,20 +528,39 @@ MetaMask 是一款插件形式的以太坊轻客户端，开发过程中使用 M
 
 ![npm启动服务截图](doc/npm_start_service.png)
 
-会自动打开浏览器显示我们的 dapp，如本文的第一张图。
+> 若执行 npm run dev 出现以下错误时，
+>
+> ![image-20200829104102920](doc/npm_run_error.png)
+>
+> 先查看项目文件里有没有node_modules文件夹
+>
+> ①没有，这说明你之前压根就没有执行过npm install。
+>
+> 先执行 npm install，再执行 npm run dev
+>
+> ②有，先执行 npm cache clean --force
+>
+> 再找到项目文件的node_modules文件夹，手动删除
+>
+> 而后 npm install ， npm run dev
+
+会自动打开浏览器显示我们的 dapp，或者手动打开 [领养网站](http://localhost:3000/)，如本文的第一张图。
 现在领养一直宠物看看，当我们点击 **Adopt** 时，MetaMask 会提示我们交易的确认，如图：
 
-![确认图](https://img.learnblockchain.cn/2018/metamask-transactionconfirm.png!wl)
+![交易确认](doc/metamask_confirm_trans.png)
 
 点击 Submit 确认后，就可以看到成功领养了这次宠物。
 
 在 MetaMask 中，也可以看到交易的清单：
-![交易的清单](https://img.learnblockchain.cn/2018/metamask-transactionsuccess.png!wl)
+
+![image-20200829105342735](doc/metamask_trans.png)
+
+
 
 好了，恭喜你，即将成为一名去中心化式应用开发者的你已经成为迈出了坚实的一步。
 还可以阅读另一篇[开发链上记事本](https://learnblockchain.cn/2019/03/30/dapp_noteOnChain/) 进一步巩固 DApp 开发。
 
-# 本项目 的使用方法
+# 本项目的使用方法
 
 > ```bash
 > cd code  # 进入源代码目录
