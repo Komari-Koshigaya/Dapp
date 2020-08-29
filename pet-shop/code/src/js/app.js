@@ -4,7 +4,6 @@ App = {
 
   init: async function() {
     // Load pets.
-    console.log("load pets\n")
     $.getJSON('../pets.json', function(data) {
       var petsRow = $('#petsRow');
       var petTemplate = $('#petTemplate');
@@ -15,7 +14,9 @@ App = {
         petTemplate.find('.pet-breed').text(data[i].breed);
         petTemplate.find('.pet-age').text(data[i].age);
         petTemplate.find('.pet-location').text(data[i].location);
+        petTemplate.find('.pet-price').text(data[i].price);
         petTemplate.find('.btn-adopt').attr('data-id', data[i].id);
+        console.log(i + "价格" + data[i].price)
 
         petsRow.append(petTemplate.html());
       }
@@ -82,6 +83,7 @@ App = {
 	  for (i = 0; i < adopters.length; i++) {
 	    if (adopters[i] !== '0x0000000000000000000000000000000000000000') {
 	      $('.panel-pet').eq(i).find('button').text('Success').attr('disabled', true);
+	      $('.panel-pet').eq(i).find('button').text('Success').removeClass('btn-primary');
 	    }
 	  }
 	}).catch(function(err) {
