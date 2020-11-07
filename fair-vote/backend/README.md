@@ -96,10 +96,25 @@ truffle migrate --network ropsten  # 此命令用于选择网络运行，  ropst
 在 `test` 目录下新建一个 `TestVote.sol`，[编写测试合约](https://learnblockchain.cn/docs/truffle/testing/writing-tests-in-solidity.html)
 
 ```js
-//待不出
+import "truffle/Assert.sol";   // 引入的断言
+import "truffle/DeployedAddresses.sol";  // 用来获取被测试合约的地址
+import "../contracts/Vote.sol";      // 被测试合约
+
+contract TestAdoption {
+  Vote vote = Vote(DeployedAddresses.Vote());
+
+  // 投票初始化测试用例
+  function testInit() public {
+    vote.Init(123,78,112,118,119,124,129);
+
+    uint expected = 12;
+    Assert.equal(0, expected, "result whitespace of Vote Init() should be recorded.");
+  }
+
+}
 ```
 
->  提示：Assert.sol 及 DeployedAddresses.sol 是 [Truffle 框架](https://learnblockchain.cn/docs/truffle/)提供，在 test 目录下并不提供 truffle 目录。TestVote 合约中添加 adopt 的测试用例。
+>  提示：Assert.sol 及 DeployedAddresses.sol 是 [Truffle 框架](https://learnblockchain.cn/docs/truffle/)提供，在 test 目录下并不提供 truffle 目录。TestVote 合约中添加 Vote 的测试用例。
 
 在终端中，执行 `truffle test` 即可看到测试结果
 
@@ -113,13 +128,44 @@ truffle migrate --network ropsten  # 此命令用于选择网络运行，  ropst
 > undefined
 > truffle(development)> Vote.deployed().then(function(instance){contract= instance;});
 > undefined
-> truffle(development)> contract.adopt(15)
-> //测试领养
-> truffle(development)> contract.getAdopters()
-> //获取宠物的领养者信息
+> truffle(development)> contract.Init(123,78,112,118,119,124,129)
+> //测试初始化投票
 > ```
 
-
+>   以下是结果  可以看到合约函数确实被触发了  并记录了  NewInit 事件
+>
+> {
+>   tx: '0xa72cf4e945ce1f6e6c766694916fdbede649044b4bd07a1a365877fb44dcfc26',
+>   receipt: {
+>     transactionHash: '0xa72cf4e945ce1f6e6c766694916fdbede649044b4bd07a1a365877fb44dcfc26',
+>     transactionIndex: 0,
+>     blockHash: '0x033f9fccc736b16dbbcc5a47d1d2ae9dcb567ee82aaf0a2dfbc83ee19e3ec78d',
+>     blockNumber: 13,
+>     from: '0xb7f4e8b4a7f031d9e9a8e781023b537f051447ad',
+>     to: '0x5d00253923cd91ffb3822bba2fd369d35bbdd93b',
+>     gasUsed: 341128,
+>     cumulativeGasUsed: 341128,
+>     contractAddress: null,
+>     logs: [ [Object] ],
+>     status: true,
+>     logsBloom: '0x00000000000000008000000000000000000010000080000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000',
+>     rawLogs: [ [Object] ]
+>   },
+>   logs: [
+>     {
+>       logIndex: 0,
+>       transactionIndex: 0,
+>       transactionHash: '0xa72cf4e945ce1f6e6c766694916fdbede649044b4bd07a1a365877fb44dcfc26',
+>       blockHash: '0x033f9fccc736b16dbbcc5a47d1d2ae9dcb567ee82aaf0a2dfbc83ee19e3ec78d',
+>       blockNumber: 13,
+>       address: '0x5D00253923cD91FFb3822Bba2FD369D35BbDD93B',
+>       type: 'mined',
+>       id: 'log_d33082b4',
+>       event: 'NewInit',
+>       args: [Result]
+>     }
+>   ]
+> }
 
 ## 运行步骤
 
