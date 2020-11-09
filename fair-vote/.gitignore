@@ -1,8 +1,9 @@
 frontend
-build
 
 # 不忽略 backend的build和test文件夹
 !backend/build
 !backend/test
+!frontend/README.md
+!frontend/test
 
 
