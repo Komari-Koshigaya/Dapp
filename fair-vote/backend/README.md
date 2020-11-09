@@ -16,8 +16,6 @@ truffle init # 初始化后端
 
 > 在 contracts 文件夹下新建 vote.sol
 
-
-
 ~~~sol
 pragma solidity ^0.6.4;
 
@@ -65,15 +63,33 @@ contract Vote {
 truffle compile
 ~~~
 
+> 编译通过后，会在项目文件夹下生成 `build` 文件夹，结构如下：
+>
+>  build
+> 		└── contracts
+>     		├── Migrations.json
+>     		└── Vote.json
+>
+> 每个合约在里面都有一个json文件，每个json文件里包含了合约的contractName，abi，metadata，bytecode…等信息
+
 ### 5.部署合约
 
-在` migrations` 文件夹下创建一个自己的部署脚本 `2_deploy_contracts.js`
+项目文件夹下的 `migrations` 目录 这里面有几个刚刚contracts文件夹中自动生成的合约的migration.js
+仿造它，为我们的合约编写这些migrations.js。
 
-```
-var Adoption = artifacts.require("Adoption");
+如：在` migrations` 文件夹下创建一个自己的部署脚本 `2_deploy_contracts.js`
 
+```js
+//case1:独立合约 不import其他合约文件 也不继承其他合约
+//tell truffle which contract we want to interact with
+var Vote = artifacts.require("Vote");
+
+//exports a function that accepts an object called deployer as a parameter. 
+//This object acts as an interface between you (the developer) and Truffle's deployment engine
 module.exports = function(deployer) {
-  deployer.deploy(Adoption);
+    
+  //部署该合约
+  deployer.deploy(Vote);
 };
 ```
 
@@ -86,6 +102,54 @@ truffle migrate --network ropsten  # 此命令用于选择网络运行，  ropst
 ```
 
 在打开的 Ganache 里可以看到区块链状态的变化，产生了 区块即代表部署成功。
+
+> 注意每个migration文件前面有序号 这个序号表示migration文件的执行顺序 我们编写的migration文件前面也依次添加上序号 
+>
+> migration.js代码解析如下👇
+>
+> ```js
+> //case1:独立合约 不import其他合约文件 也不继承其他合约
+> //tell truffle which contract we want to interact with
+> const contractName = artifacts.require（“contractName”）;
+> 
+> //exports a function that accepts an object called deployer as a parameter. 
+> //This object acts as an interface between you (the developer) and Truffle's deployment engine
+> module.exports = function(deployer) {
+> 
+> 	//部署该合约
+> 	deployer.deploy（contractName）;
+> }
+> ```
+> 第二种情况 有引入其他合约
+> ~~~js
+> //case2:import其他合约文件 或继承其他合约
+> //先写被import、被继承的合约
+> const importcontract1 = artifacts.require（“importcontract1”）；
+> const importcontract2 = artifacts.require（“importcontract2”）；
+> ......
+> 
+> //最后写该合约
+> const contractName = artifacts.require（“contractName”）；
+> 
+> //exports a function that accepts an object called deployer as a parameter. 
+> //This object acts as an interface between you (the developer) and Truffle's deployment engine
+> module.exports = function(deployer) {
+> 
+> 	//先部署引入合约
+> 	deployer.deploy（importcontract1）;
+> 	//再将引入合约与该合约链接
+> 	deployer.link(importcontract1, contractName);
+> 	
+> 	//对所有引入、继承合约重复部署、链接操作
+> 	deployer.deploy（importcontract2）;
+> 	deployer.link(importcontract2, contractName);
+> 	......
+> 	
+> 	//最后部署该合约
+> 	deployer.deploy（contractName）;
+> }
+> ~~~
+
 
 ### 6.测试合约
 
@@ -130,9 +194,11 @@ contract TestAdoption {
 > undefined
 > truffle(development)> contract.Init(123,78,112,118,119,124,129)
 > //测试初始化投票
+> 
+> truffle(development)> contract.Init(123,78,112,118,119,124,129).then(function(events){console.log(events.logs[0].args)}); //打印合约触发的事件
 > ```
 
->   以下是结果  可以看到合约函数确实被触发了  并记录了  NewInit 事件
+>   以下是测试初始化投票结果  可以看到合约函数确实被触发了  并记录了  NewInit 事件
 >
 > {
 >   tx: '0xa72cf4e945ce1f6e6c766694916fdbede649044b4bd07a1a365877fb44dcfc26',
@@ -170,7 +236,7 @@ contract TestAdoption {
 ## 运行步骤
 
 ~~~bash
-truffle --network development 	 # 进入truffle控制台
+truffle console --network development 	 # 进入truffle控制台
 truffle(development)> migrate --reset --compile-all  # 将合约部署到区块链
 truffle(development)> Vote.abi  # 查看 Adoption.sol合约的abi 不准确，推荐使用引用里的方法
 
