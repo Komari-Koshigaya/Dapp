@@ -1,4 +1,4 @@
-frontend
+frontend/src
 
 # 不忽略 backend的build和test文件夹
 !backend/build
