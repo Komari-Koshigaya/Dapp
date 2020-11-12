@@ -15,7 +15,7 @@ contract VoteFactory
     
     VoteInfo[] public voteList;
     
-    function CreateVote(string memory name, uint8 option, uint8 max, uint64 t1, uint64 t2, uint64 t3, uint64 t4, uint64 t5) public{
+    function CreateVote(string memory name, uint option, uint max, uint t1, uint t2, uint t3, uint t4, uint t5) public{
         require((t1 > now) && (t2 > t1) && (t3 > t2) && (t4 > t3) && (t5 > t4), "TIME PARAMETER ERROR");
         Vote vote = new Vote(msg.sender, name, option, max, t1, t2, t3, t4, t5);
         voteList.push(VoteInfo(name, vote));

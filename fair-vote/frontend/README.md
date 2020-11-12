@@ -51,7 +51,7 @@ var myEvent = MyContract.events.EventName({
 
 # 密码学js库
 
-## hash算法
+## hash算法 (以下需求完全可用 web3.js 推荐)
 
 [ethers.js](https://github.com/ethers-io/ethers.js) 以太坊官方实现的 javascript 库 包括以下hash算法
 
