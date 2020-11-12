@@ -81,6 +81,7 @@ let abi = [
     }
   ];
 
+console.log(ethers.utils.keccak256(ethers.utils.toUtf8Bytes("hello")))
 
 let VOTE_ADDRESS = "0x5D00253923cD91FFb3822Bba2FD369D35BbDD93B";
 let JSONRPC_ENDPOINT = 'http://192.168.1.102:8545';

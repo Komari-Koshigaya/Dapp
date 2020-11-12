@@ -39,3 +39,76 @@ var myEvent = MyContract.events.EventName({
 }).on('error', console.error);
 ```
 
+
+
+
+
+
+
+
+
+
+
+# 密码学js库
+
+## hash算法
+
+[ethers.js](https://github.com/ethers-io/ethers.js) 以太坊官方实现的 javascript 库 包括以下hash算法
+
+> [hash算法使用文档](https://docs.ethers.io/v5/api/utils/hashing/#utils-keccak256)
+>
+> *ethers*.*utils*.**id**( *text* ) ⇒ *string< [DataHexString](https://docs.ethers.io/v5/api/utils/bytes/#DataHexString)< 32 > >*
+>
+> The Ethereum Identity function computes the [KECCAK256](https://en.wikipedia.org/wiki/SHA-3) hash of the *text* bytes.
+>
+> 
+>
+> *ethers*.*utils*.**keccak256**( *aBytesLike* ) ⇒ *string< [DataHexString](https://docs.ethers.io/v5/api/utils/bytes/#DataHexString)< 32 > >*
+>
+> Returns the [KECCAK256](https://en.wikipedia.org/wiki/SHA-3) digest *aBytesLike*.
+>
+> 
+>
+> *ethers*.*utils*.**ripemd160**( *aBytesLike* ) ⇒ *string< [DataHexString](https://docs.ethers.io/v5/api/utils/bytes/#DataHexString)< 20 > >
+>
+> Returns the [RIPEMD-160](https://en.m.wikipedia.org/wiki/RIPEMD) digest of *aBytesLike*.
+>
+> 
+>
+> *ethers*.*utils*.**sha256**( *aBytesLike* ) ⇒ *string< [DataHexString](https://docs.ethers.io/v5/api/utils/bytes/#DataHexString)< 32 > >*
+>
+> Returns the [SHA2-256](https://en.wikipedia.org/wiki/SHA-2) digest of *aBytesLike*.
+>
+> 
+>
+> *ethers*.*utils*.**sha512**( *aBytesLike* ) ⇒ *string< [DataHexString](https://docs.ethers.io/v5/api/utils/bytes/#DataHexString)< 64 > >*
+>
+> Returns the [SHA2-512](https://en.wikipedia.org/wiki/SHA-2) digest of *aBytesLike*.
+
+### Installing
+
+**node.js**
+
+```
+/home/ricmoo/some_project> npm install --save ethers
+```
+
+**browser (UMD)**
+
+```
+<script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js" type="text/javascript">
+</script>
+```
+
+**browser (ESM)**
+
+```
+<script type="module">
+    import { ethers } from "https://cdn.ethers.io/lib/ethers-5.0.umd.min.js";
+</script>
+```
+
+
+
+
+
