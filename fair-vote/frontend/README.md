@@ -112,3 +112,30 @@ var myEvent = MyContract.events.EventName({
 
 
 
+# 常见报错
+
+1. **Error: No "from" address specified in neither the given options, nor the default options.**
+
+> 该错误是由于未指定发送交易的发起方地址，或是该地址未解锁
+
+
+
+2. **Error: Returned error: VM Exception while processing transaction: revert**
+
+> 该错误是由于 发起交易的汽油费超过默认gas，从而被撤回，可在发送交易的同时指定汽油费的上限
+>
+> 如：
+>
+> ~~~js
+> voteFactoryInstance.methods.CreateVote('总统选举',2,8,1617255905,1617355905,1617455905,1617515905,1617555905)
+> .send({
+>     from: defaultAccount,
+>     gas: 2721975
+> }) 
+>     .on('error', function(error) {
+>     console.error(error)
+> });
+> ~~~
+>
+> 
+
