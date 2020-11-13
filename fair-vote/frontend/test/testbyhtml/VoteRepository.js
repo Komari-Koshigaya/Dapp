@@ -15968,8 +15968,7 @@ let VoteRepository = {
   },
   "networks": {},
   "schemaVersion": "3.3.1",
-  "updatedAt": "2020-11-13T02:07:44.893Z",
-  "networkType": "ethereum",
+  "updatedAt": "2020-11-13T16:00:52.039Z",
   "devdoc": {
     "methods": {}
   },

@@ -1,4 +1,4 @@
-// 引入 VoteRepository.json 里面包括 abi信息
+// 引入 Vote Repository.json 里面包括 abi信息
 let VoteRepository = require('./Vote')
 let VoteFactoryRepository = require('./VoteFactory')
 let Web3 = require("web3")
