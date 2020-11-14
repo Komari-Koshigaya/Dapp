@@ -43,6 +43,16 @@ var myEvent = MyContract.events.EventName({
 
 
 
+## 使用方法
+
+~~~bash
+# 解决 npm 下载速度慢的问题
+npm install --registry=https://registry.npm.taobao.org
+
+npm run dev
+npm build
+~~~
+
 
 
 
