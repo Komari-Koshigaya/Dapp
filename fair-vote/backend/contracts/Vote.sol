@@ -64,7 +64,7 @@ contract Vote {
     //注册函数
     function Register(uint r, uint a, uint c, uint y) public returns (bool success){
         require(_timeValue.registerEndTime > now, "Not Register Time.");
-        if ((a == _ElGamalValue.g**r * y**c) && (voterNum<maxnum)){
+        if (((_ElGamalValue.g**r) % _ElGamalValue.p == (a * y**c) % _ElGamalValue.p) && (voterNum<maxnum)){
             voterList.push(VoterInfo(y, 0, 0, 0, 0));
             voters[y] = voterNum;
             voterNum++;
@@ -77,7 +77,7 @@ contract Vote {
     function Encrypt(uint[] memory a, uint[] memory b, uint[] memory r, uint[] memory d, uint c, uint _venc, uint Y, uint y) public returns (bool success){
         require((_timeValue.registerEndTime < now) && (_timeValue.encryptEndTime > now), "Not Encrypt Time.");
         for(uint i=0; i<o; i++){
-            if((a[i] != _ElGamalValue.g**r[i] * y**d[i]) || (b[i] != Y**r[i] * (_venc/(_ElGamalValue.g**(2**(i*q))))**d[i])){
+            if((a[i] != (_ElGamalValue.g**r[i] / y**d[i]) % _ElGamalValue.p) || (b[i] != (Y**r[i] / (_venc/(_ElGamalValue.g**(2**(i*q))))**d[i]) % _ElGamalValue.p)){
                 return false;
             }
         }
@@ -88,7 +88,7 @@ contract Vote {
     //解密函数
     function Decrypt(uint r, uint a1, uint a2, uint c, uint _vdec, uint Y, uint y) public returns (bool success){
         require((_timeValue.encryptEndTime < now) && (_timeValue.decryptEndTime > now), "Not Decrypt Time.");
-        if ((a1 == Y**r * _vdec**c) && (a2 == _ElGamalValue.g**r / y**c)){
+        if ((a1 == (Y**r * _vdec**c) % _ElGamalValue.p) && (a2 == (_ElGamalValue.g**r / y**c) % _ElGamalValue.p)){
             voterList[voters[y]].vdec = _vdec;
             return true;
         }
@@ -98,7 +98,7 @@ contract Vote {
     //构造函数
     function Assist(uint r, uint a1, uint a2, uint c, uint _vass, uint h, uint y) public returns (bool success){
         require((_timeValue.encryptEndTime < now) && (_timeValue.assistEndTime > now), "Not Assist Time.");
-        if ((a1 == h**r * _vass**c) && (a2 == _ElGamalValue.g**r * y**c)){
+        if (((h**r) % _ElGamalValue.p == (a1 * _vass**c) % _ElGamalValue.p) && ((_ElGamalValue.g**r) % _ElGamalValue.p == (a2 * y**c) % _ElGamalValue.p)){
             voterList[voters[y]].vass = _vass;
             return true;
         }
@@ -108,7 +108,7 @@ contract Vote {
     //恢复函数
     function Recover(uint r, uint a1, uint a2, uint c, uint _vrec, uint h, uint y) public returns (bool success){
         require((_timeValue.decryptEndTime < now) && (_timeValue.recoverEndTime > now), "Not Recover Time.");
-        if ((a1 == h**r * _vrec**c) && (a2 == _ElGamalValue.g**r * y**c)){
+        if (((h**r) % _ElGamalValue.p == (a1 * _vrec**c) % _ElGamalValue.p)  && ((_ElGamalValue.g**r) % _ElGamalValue.p == (a2 * y**c) % _ElGamalValue.p)){
             voterList[voters[y]].vrec = _vrec;
             return true;
         }
