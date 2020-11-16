@@ -14,8 +14,16 @@
 	<div align="center" style="font-size: 18px;color: red;">
 		使用 web3.js库，测试发送交易、调用合约函数、读取合约event事件
 		测试结果在 console 控制台打印
-	</div>
+		
 
+
+	</div>
+	<div  align="center" >
+		<button onclick="createVote()" >创建新投票</button>
+		<button onclick="showVote()" >查看所有投票</button>
+		<button onclick="registerToVote('0x0c6886fC77B30565079FD273E55043E8Bf76eEBF', Math.floor(Math.random()*(4-2+1)+2))" >注册投票</button>
+	</div>
+	
 
 </body>
 </html>
