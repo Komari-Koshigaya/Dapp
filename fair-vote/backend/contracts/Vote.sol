@@ -61,10 +61,25 @@ contract Vote {
         return voterList;
     }
     
+
+    function Montgomery(uint g, uint m, uint p) public pure returns (uint){
+        uint n = 1;
+        while(m > 0){
+            if(m % 2 == 1) n = (n * g) % p;
+            m >>= 1;
+            g = (g * g) % p;
+        }
+        return n;
+    }
+    
     //注册函数
     function Register(uint r, uint a, uint c, uint y) public returns (bool success){
         require(_timeValue.registerEndTime > now, "Not Register Time.");
-        if (((_ElGamalValue.g**r) % _ElGamalValue.p == (a * y**c) % _ElGamalValue.p) && (voterNum<maxnum)){
+        uint m = Montgomery(y,c,_ElGamalValue.p);
+        m =( a * m ) % _ElGamalValue.p;
+        uint n = Montgomery(_ElGamalValue.g,r,_ElGamalValue.p);
+        
+        if( (m == n) && (voterNum<maxnum) ){
             voterList.push(VoterInfo(y, 0, 0, 0, 0));
             voters[y] = voterNum;
             voterNum++;

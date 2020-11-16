@@ -5,6 +5,20 @@ class Config{
     static VOTEFACTORY_ABI = VoteFactoryRepository.abi;
 
     static VOTE_ABI = VoteRepository.abi;
+
+}
+class Util{
+
+    //高效指数取模运算（蒙哥马利算法）
+    static montgomery(g, k,p){//求 g^k mod p
+        let res = 1;
+        while(k){
+            if(k & 1)    res = (res*g) % p;//odd
+            k >>= 1;
+            g = (g*g) % p
+        }
+        return res;
+    }
 }
 
 
@@ -60,24 +74,20 @@ Connect.init();
 class VoteFactory{
     voteFactoryInstance = null;
 
-    static init(){
-        let web3 = Connect.web3;
-        this.voteFactoryInstance = new web3.eth.Contract(Config.VOTEFACTORY_ABI,Config.VOTEFACTORY_ADDRESS)
-        // console.log(this.voteFactoryInstance.methods)
-    }
-
     static getVoteFactoryInstance(){
-        if(typeof this.voteFactoryInstance === 'undefined')
-            this.init()
-          
+        if(typeof this.voteFactoryInstance === 'undefined'){
+            let web3 = Connect.web3;
+            this.voteFactoryInstance = new web3.eth.Contract(
+                Config.VOTEFACTORY_ABI,Config.VOTEFACTORY_ADDRESS)
+        }
         return this.voteFactoryInstance;
     }
 
-//==============> 创建投票界面
     static createVote(){
         let voteFactoryInstance = this.getVoteFactoryInstance();
       //使用 send调用合约 会发起一笔交易并签名 因此该账户必须已解锁
-        voteFactoryInstance.methods.CreateVote('总统选举',2,8,1617255905,1617355905,1617455905,1617515905,1617555905)
+        voteFactoryInstance.methods.CreateVote('总统选举',2,8,1617255905,1617355905,
+            1617455905,1617515905,1617555905)
         .send({
             from: Connect.defaultAccount,
             gas: 2721975
@@ -86,13 +96,13 @@ class VoteFactory{
             console.log("创建新投票成功！\n")
             console.log(receipt);
 
-            //交易发送成功后，获取 votelist
-            voteFactoryInstance.methods.GetVoteList()
-            .call({from: Connect.defaultAccount})
-            .then(function(result){
-                console.log(`共有 ${result.length} 个投票`)
-                console.log( result )
-            });
+            // //交易发送成功后，获取 votelist
+            // voteFactoryInstance.methods.GetVoteList()
+            // .call({from: Connect.defaultAccount})
+            // .then(function(result){
+            //     console.log(`共有 ${result.length} 个投票`)
+            //     console.log( result )
+            // });
         })
         .on('error', function(error) { // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
             console.error(error)
@@ -101,6 +111,8 @@ class VoteFactory{
 
     //搜索已有的投票合约
     static searchVoteByName( voteName ){
+
+
         let voteFactoryInstance = this.getVoteFactoryInstance();
         let votelist =[],voteObj={};
           //获取 votelist
@@ -137,9 +149,59 @@ class Vote{
         voteInstance.methods.GetVoteInfo()
         .call({from: Connect.defaultAccount})
         .then(function(result){
-            // console.log(result)
-
             let p = result[1].p, g= result[1].g;
+
+            //构造 ZK
+            //生成 min-max之间的最大值  Math.floor(Math.random()*(max-min+1)+min);
+            let yi = Util.montgomery(g, xi, p);//(1-p)
+            let w = Math.floor(Math.random()*(30-3+1)+3), a = Util.montgomery(g, w, p);//(1-p) 
+            let c = Connect.web3.utils.keccak256(''+g+yi+a);
+            c = Number(c) % p;
+            let r= BigInt(w+xi*c);
+            console.log(`xi: ${xi}, r: ${r}, c: ${c}, a: ${a},yi: ${yi}`)
+
+            //向该投票合约注册公钥
+            // voteInstance.methods.Register(r, a, c, yi)
+            voteInstance.methods.Register(1, 1, 1, 1)
+            .send({
+                from: Connect.defaultAccount,
+                gas: 2721975
+            })
+            // , function(error, result){
+            //     console.log(result)
+            // });
+            .on('receipt', function(receipt){
+                console.log(receipt)
+                //注册成功
+                if(receipt)   {
+                    
+                    layer.alert('向 vote teacher 投票注册成功！', {
+                      skin: 'layui-layer-molv' //样式类名
+                      ,closeBtn: 0
+                    });
+                }
+                else   console.warn("向 vote teacher 投票注册失败");
+            })
+            .on('error', function(error) { // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
+                console.error(error)
+            });
+
+        });
+    }
+
+
+    //1.向某个合约注册
+    static encryptToVote(voteAddress,xi){
+        //获取投票实例
+        let voteInstance = this.getVoteInstance(voteAddress);
+
+        //读取该投票实例的参数
+        voteInstance.methods.GetVoteInfo()
+        .call({from: Connect.defaultAccount})
+        .then(function(result){
+            let p = result[1].p, g= result[1].g;
+
+            //构造 ZK
             //生成 min-max之间的最大值  Math.floor(Math.random()*(max-min+1)+min);
             let yi = g ** xi % p;//(1-p)
             let w = Math.floor(Math.random()*(30-3+1)+3), a = g ** w % p;//(1-p) 
@@ -155,7 +217,14 @@ class Vote{
                 gas: 2721975
             })
             .on('receipt', function(receipt){
-                if(receipt.status)   console.log("向 vote teacher 投票注册成功！\n")
+                //注册成功
+                if(receipt.status)   {
+                    console.log(voteInstance)
+                    layer.alert('向 vote teacher 投票注册成功！', {
+                      skin: 'layui-layer-molv' //样式类名
+                      ,closeBtn: 0
+                    });
+                }
                 else   console.warn("向 vote teacher 投票注册失败");
             })
             .on('error', function(error) { // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
@@ -164,7 +233,6 @@ class Vote{
 
         });
     }
-
 }
 
 

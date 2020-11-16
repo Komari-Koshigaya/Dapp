@@ -4,7 +4,9 @@
 	<title>测试使用web3.js连接合约</title>
 	<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
-	<!-- web3.js完全替代了 <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js" type="text/javascript"></script> -->
+	<script src="https://cdn.bootcdn.net/ajax/libs/layer/2.3/layer.js"></script>
+	<script src='https://cdn.jsdelivr.net/npm/big.js@6.0.0/big.min.js'></script>
+	<!-- 本地js -->
 	<script type="text/javascript" src="./VoteFactoryRepository.js"></script>
 	<script type="text/javascript" src="./VoteRepository.js"></script>
 	<script type="text/javascript" src="./testContractCon.js"></script>	
@@ -21,7 +23,8 @@
 	<div  align="center" >
 		<button onclick="createVote()" >创建新投票</button>
 		<button onclick="showVote()" >查看所有投票</button>
-		<button onclick="registerToVote('0x0c6886fC77B30565079FD273E55043E8Bf76eEBF', Math.floor(Math.random()*(4-2+1)+2))" >注册投票</button>
+		<button onclick="registerToVote('0x2aB37d188D13b493AAC6a645d16594db2b708B8f',
+		 Math.floor(Math.random()*(150056-89865+1)+89865))" >注册投票</button>
 	</div>
 	
 
