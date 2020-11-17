@@ -16,14 +16,15 @@ contract Vote {
         uint decryptEndTime;
         uint recoverEndTime;
     }
-    ElGamalValue _ElGamalValue = ElGamalValue(150001, 7);
+    ElGamalValue _ElGamalValue = ElGamalValue(63, 5);
     TimeValue _timeValue;
-    uint q = 1;    //选票所需参数
-    uint s = 13;
+    uint q = 1;    //选票所需
     uint o = 0;    //候选人个数
     uint maxnum = 0;    //最大投票人个数
     
     struct VoterInfo {
+        bool notFailer;
+        bool isHonest;
         uint y;
         uint venc;
         uint vdec;
@@ -38,13 +39,17 @@ contract Vote {
     address owner;    //投票发起人地址
     string voteName;    //投票名
 
+    event NewResult(bool status, string msg);
+    
     //初始化函数，为各个参数赋初值
     constructor(address _address, string memory _voteName, uint option, uint max, uint t1, uint t2, uint t3, uint t4, uint t5) public {
         owner = _address;
         voteName = _voteName;
         //计算q的值
-        while(2**q <= max){
+        uint res = 2;
+        while(res <= max){
             q = q + 1;
+            res = res * 2;
         }
         maxnum = max;
         o = option;
@@ -52,8 +57,8 @@ contract Vote {
     }
     
     //投票信息获取函数
-    function GetVoteInfo() public view returns(string memory, ElGamalValue memory, TimeValue memory, uint, uint, uint){
-        return (voteName, _ElGamalValue, _timeValue, q, s, o);
+    function GetVoteInfo() public view returns(string memory, ElGamalValue memory, TimeValue memory, uint, uint){
+        return (voteName, _ElGamalValue, _timeValue, q, o);
     }
     
     //投票人信息获取函数
@@ -61,7 +66,6 @@ contract Vote {
         return voterList;
     }
     
-
     function Montgomery(uint g, uint m, uint p) public pure returns (uint){
         uint n = 1;
         while(m > 0){
@@ -73,61 +77,94 @@ contract Vote {
     }
     
     //注册函数
-    function Register(uint r, uint a, uint c, uint y) public returns (bool success){
+    function Register(uint r, uint a, uint c, uint y) public {
         require(_timeValue.registerEndTime > now, "Not Register Time.");
         uint m = Montgomery(y,c,_ElGamalValue.p);
-        m =( a * m ) % _ElGamalValue.p;
         uint n = Montgomery(_ElGamalValue.g,r,_ElGamalValue.p);
         
-        if( (m == n) && (voterNum<maxnum) ){
-            voterList.push(VoterInfo(y, 0, 0, 0, 0));
-            voters[y] = voterNum;
-            voterNum++;
-            return true;
+        if(voterNum<maxnum){
+            if(a == (m*n) % _ElGamalValue.p){
+                voterList.push(VoterInfo(false, false, y, 0, 0, 0, 0));
+                voters[y] = voterNum;
+                voterNum++;
+                emit NewResult(true,"Register success");
+                return;
+            } else{
+                emit NewResult(false,"the proof is wrong");
+                return;
+            }
         }
-        return false;
+        emit NewResult(false,"the number of voters is enough");
     }
     
     //加密函数
-    function Encrypt(uint[] memory a, uint[] memory b, uint[] memory r, uint[] memory d, uint c, uint _venc, uint Y, uint y) public returns (bool success){
+    function Encrypt(uint[] memory a, uint[] memory b, uint[] memory r, uint[] memory d, uint c, uint _venc, uint Y, uint y) public{
         require((_timeValue.registerEndTime < now) && (_timeValue.encryptEndTime > now), "Not Encrypt Time.");
-        for(uint i=0; i<o; i++){
-            if((a[i] != (_ElGamalValue.g**r[i] / y**d[i]) % _ElGamalValue.p) || (b[i] != (Y**r[i] / (_venc/(_ElGamalValue.g**(2**(i*q))))**d[i]) % _ElGamalValue.p)){
-                return false;
+        uint m1;
+        uint m2;
+        uint n1;
+        uint n2;
+        for(uint256 i=0; i<o; i++){
+            m1 = Montgomery(y,d[i],_ElGamalValue.p);
+            n1 = Montgomery(_ElGamalValue.g,r[i],_ElGamalValue.p);
+            m2 = Montgomery(Y,r[i],_ElGamalValue.p);
+            n2 = Montgomery(_venc/(_ElGamalValue.g**(2**(i*q))),d[i],_ElGamalValue.p);
+            if((a[i] != (m1 * n1) % _ElGamalValue.p) || (b[i] != (m2 * n2) % _ElGamalValue.p)){
+                emit NewResult(false,"the proof is wrong");
+                return;
             }
         }
         voterList[voters[y]].venc = _venc;
-        return true;
+        voterList[voters[y]].notFailer = true;
+        emit NewResult(true,"Encrypt success");
     }
     
     //解密函数
-    function Decrypt(uint r, uint a1, uint a2, uint c, uint _vdec, uint Y, uint y) public returns (bool success){
+    function Decrypt(uint r, uint a1, uint a2, uint c, uint _vdec, uint Y, uint y) public{
         require((_timeValue.encryptEndTime < now) && (_timeValue.decryptEndTime > now), "Not Decrypt Time.");
-        if ((a1 == (Y**r * _vdec**c) % _ElGamalValue.p) && (a2 == (_ElGamalValue.g**r / y**c) % _ElGamalValue.p)){
+        uint m1 = Montgomery(Y,r,_ElGamalValue.p);
+        uint n1 = Montgomery(_vdec,c,_ElGamalValue.p);
+        uint m2 = Montgomery(y,c,_ElGamalValue.p);
+        m2 = (a2 * m2) % _ElGamalValue.p;
+        uint n2 = Montgomery(_ElGamalValue.g,r,_ElGamalValue.p);
+        if ((a1 == (m1 * n1) % _ElGamalValue.p) && (m2 == n2)){
             voterList[voters[y]].vdec = _vdec;
-            return true;
+            voterList[voters[y]].isHonest = true;
+            emit NewResult(true,"Decrypt success");
+            return;
         }
-        return false;
+        emit NewResult(false,"the proof is wrong");
     }
     
     //构造函数
-    function Assist(uint r, uint a1, uint a2, uint c, uint _vass, uint h, uint y) public returns (bool success){
+    function Assist(uint r, uint a1, uint a2, uint c, uint _vass, uint h, uint y) public{
         require((_timeValue.encryptEndTime < now) && (_timeValue.assistEndTime > now), "Not Assist Time.");
-        if (((h**r) % _ElGamalValue.p == (a1 * _vass**c) % _ElGamalValue.p) && ((_ElGamalValue.g**r) % _ElGamalValue.p == (a2 * y**c) % _ElGamalValue.p)){
+        uint m1 = Montgomery(h,r,_ElGamalValue.p);
+        uint n1 = Montgomery(_vass,c,_ElGamalValue.p);
+        uint m2 = Montgomery(y,c,_ElGamalValue.p);
+        uint n2 = Montgomery(_ElGamalValue.g,r,_ElGamalValue.p);
+        if ((a1 == (m1 * n1) % _ElGamalValue.p) && (a2 == (m2 * n2) % _ElGamalValue.p)){
             voterList[voters[y]].vass = _vass;
-            return true;
+            voterList[voters[y]].isHonest = true;
+            emit NewResult(true,"Assist success");
+            return;
         }
-        return false;
+        emit NewResult(false,"the proof is wrong");
     }
     
     //恢复函数
-    function Recover(uint r, uint a1, uint a2, uint c, uint _vrec, uint h, uint y) public returns (bool success){
+    function Recover(uint r, uint a1, uint a2, uint c, uint _vrec, uint h, uint y) public{
         require((_timeValue.decryptEndTime < now) && (_timeValue.recoverEndTime > now), "Not Recover Time.");
-        if (((h**r) % _ElGamalValue.p == (a1 * _vrec**c) % _ElGamalValue.p)  && ((_ElGamalValue.g**r) % _ElGamalValue.p == (a2 * y**c) % _ElGamalValue.p)){
+        uint m1 = Montgomery(h,r,_ElGamalValue.p);
+        uint n1 = Montgomery(_vrec,c,_ElGamalValue.p);
+        uint m2 = Montgomery(y,c,_ElGamalValue.p);
+        uint n2 = Montgomery(_ElGamalValue.g,r,_ElGamalValue.p);
+        if ((a1 == (m1 * n1) % _ElGamalValue.p) && (a2 == (m2 * n2) % _ElGamalValue.p)){
             voterList[voters[y]].vrec = _vrec;
-            return true;
+            emit NewResult(true,"Recover success");
+            return;
         }
-        return false;
+        emit NewResult(false,"the proof is wrong");
     }
 
 }

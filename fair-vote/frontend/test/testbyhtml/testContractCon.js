@@ -1,4 +1,4 @@
-//==============> 配置信息
+// migrate --reset --compile-all ==============> 配置信息
 class Config{
     static JSONRPC_WS_ENDPOINT = 'ws://192.168.1.102:8545';
     static VOTEFACTORY_ADDRESS = VoteFactoryRepository.networks['5777'].address;
@@ -19,13 +19,17 @@ class Util{
         }
         return res;
     }
+
+    static getRandom(max, min){
+        return Math.floor( Math.random() *( max - min + 1 ) + min );
+    }
 }
 
 
 
 //==============> web3初始化
 class Connect{
-    //下述两行 不加static其实完全会被忽略 此处仅仅是提醒有哪些变量
+    //下述两行 不加static其实是实例属性无法通过clss.pro访问 此处仅仅是提醒有哪些变量
     web3 = null;
     defaultAccount = null;
 
@@ -94,15 +98,6 @@ class VoteFactory{
         })
         .on('receipt', function(receipt){
             console.log("创建新投票成功！\n")
-            console.log(receipt);
-
-            // //交易发送成功后，获取 votelist
-            // voteFactoryInstance.methods.GetVoteList()
-            // .call({from: Connect.defaultAccount})
-            // .then(function(result){
-            //     console.log(`共有 ${result.length} 个投票`)
-            //     console.log( result )
-            // });
         })
         .on('error', function(error) { // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
             console.error(error)
@@ -111,7 +106,6 @@ class VoteFactory{
 
     //搜索已有的投票合约
     static searchVoteByName( voteName ){
-
 
         let voteFactoryInstance = this.getVoteFactoryInstance();
         let votelist =[],voteObj={};
@@ -139,98 +133,137 @@ class Vote{
         return new web3.eth.Contract(Config.VOTE_ABI,voteAddress);
     }
 
+    static getVoteInfo(voteInstance){
+        return new Promise(resolve=>{
+            //读取该投票实例的参数
+            voteInstance.methods.GetVoteInfo()
+            .call({from: Connect.defaultAccount})
+            .then( result =>{
+                resolve(result);
+            });
+        });
+    }
+    //获取指定投票的投票人信息
+    static getVoterInfo(voteInstance){
+        return new Promise(resolve=>{
+            voteInstance.methods.GetVoterInfo()
+            .call({from: Connect.defaultAccount})
+            .then( result =>{
+                resolve(result);
+            });
+        });
+    }
 
     //1.向某个合约注册
-    static registerToVote(voteAddress,xi){
+    static async registerToVote(voteAddress,xi){
         //获取投票实例
         let voteInstance = this.getVoteInstance(voteAddress);
+        //获取投票参数
+        let voteInfo = await this.getVoteInfo(voteInstance);
+        let p = voteInfo[1].p, g= voteInfo[1].g;
 
-        //读取该投票实例的参数
-        voteInstance.methods.GetVoteInfo()
-        .call({from: Connect.defaultAccount})
-        .then(function(result){
-            let p = result[1].p, g= result[1].g;
+        //构造 ZK
+        let yi = Util.montgomery(g, xi, p),ppow=p*p;//(1-p)
+        let w = Math.floor(Math.random()*( p +1)+ppow), a = Util.montgomery(g, w, p);//(1-p) 
+        let c = Connect.web3.utils.keccak256(''+g+yi+a);
+        console.log(`c: ${c} , ${Number(c)} `)
+        c = Number(c) % p;
+        let r= BigInt(w-xi*c);
+        console.log(`p: ${p}, g: ${g}, xi: ${xi}, yi: ${yi}, w: ${w}, r: ${r}, a: ${a}, c: ${c}`)
 
-            //构造 ZK
-            //生成 min-max之间的最大值  Math.floor(Math.random()*(max-min+1)+min);
-            let yi = Util.montgomery(g, xi, p);//(1-p)
-            let w = Math.floor(Math.random()*(30-3+1)+3), a = Util.montgomery(g, w, p);//(1-p) 
-            let c = Connect.web3.utils.keccak256(''+g+yi+a);
-            c = Number(c) % p;
-            let r= BigInt(w+xi*c);
-            console.log(`xi: ${xi}, r: ${r}, c: ${c}, a: ${a},yi: ${yi}`)
+        //向该投票合约注册公钥
+        voteInstance.methods.Register(r, a, c, yi)
+        // voteInstance.methods.Register(1, 1, 1, 1)
+        .send({ from: Connect.defaultAccount,gas: 2721975 })
+        .on('receipt', function(receipt){
 
-            //向该投票合约注册公钥
-            // voteInstance.methods.Register(r, a, c, yi)
-            voteInstance.methods.Register(1, 1, 1, 1)
-            .send({
-                from: Connect.defaultAccount,
-                gas: 2721975
-            })
-            // , function(error, result){
-            //     console.log(result)
-            // });
-            .on('receipt', function(receipt){
-                console.log(receipt)
-                //注册成功
-                if(receipt)   {
-                    
-                    layer.alert('向 vote teacher 投票注册成功！', {
-                      skin: 'layui-layer-molv' //样式类名
-                      ,closeBtn: 0
-                    });
-                }
-                else   console.warn("向 vote teacher 投票注册失败");
-            })
-            .on('error', function(error) { // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
-                console.error(error)
-            });
-
+            //通过合约事件来判断 合约的验证是否通过
+            console.log(receipt)
+            let result = receipt.events.NewResult.returnValues;//event的返回值
+            if(result.status)   {//合约验证通过
+                layer.alert(`${result.status}  向 ${voteInstance._address} 投票注册成功！`, {
+                  skin: 'layui-layer-molv' //样式类名
+                  ,closeBtn: 0
+                });
+            }else   //合约验证失败
+                console.warn(`${result.status}  向 ${voteInstance._address} 投票注册失败, ${result.msg}`);
+        })
+        .on('error', function(error) { // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
+            console.error(error)
         });
     }
 
 
-    //1.向某个合约注册
-    static encryptToVote(voteAddress,xi){
+    //2.加密投票
+    static async encryptToVote(voteAddress,voteNum,xi){
         //获取投票实例
         let voteInstance = this.getVoteInstance(voteAddress);
+        //获取投票参数
+        let voteInfo = await this.getVoteInfo(voteInstance);
+        let p=voteInfo[1].p, g=voteInfo[1].g, q=voteInfo[3], o=voteInfo[4];
+        //获取所有投票人的公钥
+        let voterList = await this.getVoterInfo(voteInstance),yiList=[], currVoterYi=Util.montgomery(g, xi, p);
+        voterList.forEach( item => yiList.push(item.y) );
 
-        //读取该投票实例的参数
-        voteInstance.methods.GetVoteInfo()
-        .call({from: Connect.defaultAccount})
-        .then(function(result){
-            let p = result[1].p, g= result[1].g;
+        //计算加密投票
+        let Yi = ( yiList.reduce((x,y)=>x*y) / currVoterYi ) % p;  //去除i自己公钥的连乘
+        let vencVi = Util.montgomery(g, 2**(voteNum*q), p) * Util.montgomery(Yi, xi, p) ;
+        console.log(voteInfo)
+        console.log(`Successful get the vote info when encrypting the voteing!
+            voteAddress: '${voteAddress}', voteNum: ${voteNum}, xi: ${xi},
+            p: ${p}, g: ${g}, q: ${q}, o: ${o}, yiList: [${yiList}],
+            currVoterYi: ${currVoterYi}, Yi: ${Yi}, vencVi: ${vencVi}`)
 
-            //构造 ZK
-            //生成 min-max之间的最大值  Math.floor(Math.random()*(max-min+1)+min);
-            let yi = g ** xi % p;//(1-p)
-            let w = Math.floor(Math.random()*(30-3+1)+3), a = g ** w % p;//(1-p) 
-            let c = Connect.web3.utils.keccak256(''+g+yi+a);
-            c = Number(c) % p;
-            let r= BigInt(w+xi*c);
-            console.log("r太大了:"+ r+ ",c:"+ c + ",a-" +a+",yi:"+yi)
+        // 构造 ZK
+        let ppow=p*p, w = Util.getRandom(ppow + p, ppow);//(p^2+p - p^2)        
+        let rjList = new Array(o).fill(0), djList = new Array(o).fill(0);
+        rjList.forEach((index)=>rjList[index] = Util.getRandom(p, 1) );
+        djList.forEach((index)=>djList[index] = Util.getRandom(p, 1) );
+        let ajList = new Array(o).fill(0), bjList = new Array(o).fill(0);
 
-            //向该投票合约注册公钥
-            voteInstance.methods.Register(r, a, c, yi)
-            .send({
-                from: Connect.defaultAccount,
-                gas: 2721975
-            })
-            .on('receipt', function(receipt){
-                //注册成功
-                if(receipt.status)   {
-                    console.log(voteInstance)
-                    layer.alert('向 vote teacher 投票注册成功！', {
-                      skin: 'layui-layer-molv' //样式类名
-                      ,closeBtn: 0
-                    });
-                }
-                else   console.warn("向 vote teacher 投票注册失败");
-            })
-            .on('error', function(error) { // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
-                console.error(error)
-            });
+        for(let j=0;j<o;j++){
+            if(j === voteNum ) continue; 
 
+            let tmp = Util.montgomery(g, rjList[j], p)  * Util.montgomery(currVoterYi, djList[j], p) 
+            ajList[j] = tmp % p ;
+
+            let vj = 2**(j*q), base = vencVi / ( g**vj);
+            tmp = Util.montgomery(Yi, rjList[j], p) * Util.montgomery( Math.floor(base), djList[j], p);
+            bjList[j] = tmp % p ;
+        }
+
+        ajList[voteNum] = Util.montgomery(g, w, p);
+        bjList[voteNum] = Util.montgomery(Yi, w, p) ;
+        let c = Connect.web3.utils.keccak256('' + g + currVoterYi + vencVi);
+        c = Number(c) % p;
+        djList[voteNum] = c - djList.reduce((x,y)=>x+y);
+        rjList[voteNum] = w - xi*djList[voteNum];
+
+        console.log(`Successful calculate the ZK when encrypting the voteing!
+            ajList: [${ajList}], bjList: [${bjList}], rjList: [${rjList}], djList: [${djList}], 
+            c: ${c}, vencVi ${vencVi}, Yi ${Yi}, currVoterYi ${currVoterYi}`)
+
+        //向该投票合约注册公钥
+        voteInstance.methods.Encrypt(ajList, bjList, rjList, djList, c, vencVi, Yi, currVoterYi)
+        .send({
+            from: Connect.defaultAccount,
+            gas: 2721975
+        })
+        .on('receipt', function(receipt){
+            //通过合约事件来判断 合约的验证是否通过
+            console.log(receipt)
+            let result = receipt.events.NewResult.returnValues;//event的返回值
+            if(result.status)   {//合约验证通过
+                layer.alert(`${result.status}  向 ${voteInstance._address} 加密投票 ${voteNum} 号成功！`, {
+                  skin: 'layui-layer-molv' //样式类名
+                  ,closeBtn: 0
+                });
+            }else   //合约验证失败
+                console.warn(`${result.status}  向 ${voteInstance._address} 加密投票 ${voteNum} 号失败, ${result.msg}`);
+        })
+        .on('error', function(error) { // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
+            console.error(error)
+            alert('当前投票尚未开始! 请稍后重试！')
         });
     }
 }
@@ -252,6 +285,17 @@ function showVote(){
 
 //====================>按钮事件    投票界面
 function registerToVote(vote_addr, xi){
-    Vote.registerToVote(vote_addr, xi);
+    Vote.registerToVote('0xc7a6C2Db9621DC94467c4B866A0ACE917E614678',
+         Math.floor(Math.random()*(63-1+1)+1));
+
+    // Vote.registerToVote(vote_addr, xi);
 }
-// registerToVote('0xaede2B9C55E0771A4497aF2157e43e8D918899fb', Math.floor(Math.random()*(4-2+1)+2))
+function encryptToVote(vote_addr){
+    //例子2
+    let result=prompt("请输入私钥和候选人编号(','分隔;编号从0开始)","61, 0"); 
+    result = result.split(",");
+    let xi = result[0] , voteNum = result[1] 
+    Vote.encryptToVote('0xc7a6C2Db9621DC94467c4B866A0ACE917E614678', voteNum, xi);
+
+}
+
