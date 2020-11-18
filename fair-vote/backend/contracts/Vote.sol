@@ -99,7 +99,7 @@ contract Vote {
     
     //加密函数
     function Encrypt(uint[] memory a, uint[] memory b, uint[] memory r, uint[] memory d, uint c, uint _venc, uint Y, uint y) public{
-        require((_timeValue.registerEndTime < now) && (_timeValue.encryptEndTime > now), "Not Encrypt Time.");
+        // require((_timeValue.registerEndTime < now) && (_timeValue.encryptEndTime > now), "Not Encrypt Time.");
         uint m1;
         uint m2;
         uint n1;

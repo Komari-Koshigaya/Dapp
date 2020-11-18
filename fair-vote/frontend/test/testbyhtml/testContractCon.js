@@ -10,7 +10,7 @@ class Config{
 class Util{
 
     //高效指数取模运算（蒙哥马利算法）
-    static montgomery(g, k,p){//求 g^k mod p
+    static montgomery(g, k, p){//求 g^k mod p
         let res = 1;
         while(k){
             if(k & 1)    res = (res*g) % p;//odd
@@ -200,23 +200,25 @@ class Vote{
         let voteInstance = this.getVoteInstance(voteAddress);
         //获取投票参数
         let voteInfo = await this.getVoteInfo(voteInstance);
-        let p=voteInfo[1].p, g=voteInfo[1].g, q=voteInfo[3], o=voteInfo[4];
+        // console.log(voteInfo);
+        let p = voteInfo[1].p, g=voteInfo[1].g, q=voteInfo[3], o = +voteInfo[4];
         //获取所有投票人的公钥
         let voterList = await this.getVoterInfo(voteInstance),yiList=[], currVoterYi=Util.montgomery(g, xi, p);
         voterList.forEach( item => yiList.push(item.y) );
-
         //计算加密投票
-        let Yi = ( yiList.reduce((x,y)=>x*y) / currVoterYi ) % p;  //去除i自己公钥的连乘
-        let vencVi = Util.montgomery(g, 2**(voteNum*q), p) * Util.montgomery(Yi, xi, p) ;
-        console.log(voteInfo)
+        let Yi = ( yiList.reduce((x,y)=>x*y) / currVoterYi );  //去除i自己公钥的连乘
+        let vencVi = g **( 2**(voteNum*q) ) * Util.montgomery(Yi, xi, p) ;
+
         console.log(`Successful get the vote info when encrypting the voteing!
             voteAddress: '${voteAddress}', voteNum: ${voteNum}, xi: ${xi},
             p: ${p}, g: ${g}, q: ${q}, o: ${o}, yiList: [${yiList}],
-            currVoterYi: ${currVoterYi}, Yi: ${Yi}, vencVi: ${vencVi}`)
+            currVoterYi: ${currVoterYi}, Yi: ${Yi}, vencVi: ${vencVi}`);
+
 
         // 构造 ZK
         let ppow=p*p, w = Util.getRandom(ppow + p, ppow);//(p^2+p - p^2)        
         let rjList = new Array(o).fill(0), djList = new Array(o).fill(0);
+
         rjList.forEach((index)=>rjList[index] = Util.getRandom(p, 1) );
         djList.forEach((index)=>djList[index] = Util.getRandom(p, 1) );
         let ajList = new Array(o).fill(0), bjList = new Array(o).fill(0);
@@ -234,6 +236,7 @@ class Vote{
 
         ajList[voteNum] = Util.montgomery(g, w, p);
         bjList[voteNum] = Util.montgomery(Yi, w, p) ;
+
         let c = Connect.web3.utils.keccak256('' + g + currVoterYi + vencVi);
         c = Number(c) % p;
         djList[voteNum] = c - djList.reduce((x,y)=>x+y);
@@ -242,6 +245,7 @@ class Vote{
         console.log(`Successful calculate the ZK when encrypting the voteing!
             ajList: [${ajList}], bjList: [${bjList}], rjList: [${rjList}], djList: [${djList}], 
             c: ${c}, vencVi ${vencVi}, Yi ${Yi}, currVoterYi ${currVoterYi}`)
+
 
         //向该投票合约注册公钥
         voteInstance.methods.Encrypt(ajList, bjList, rjList, djList, c, vencVi, Yi, currVoterYi)
@@ -262,9 +266,15 @@ class Vote{
                 console.warn(`${result.status}  向 ${voteInstance._address} 加密投票 ${voteNum} 号失败, ${result.msg}`);
         })
         .on('error', function(error) { // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
-            console.error(error)
             alert('当前投票尚未开始! 请稍后重试！')
+            console.error(error)
         });
+    }
+
+
+    //3.解密 
+    static async decryptToVote(voteAddress){
+
     }
 }
 
@@ -275,27 +285,29 @@ class Vote{
 
 //==================================================> 按钮事件
 //====================>按钮事件 创建投票界面
-function createVote(){
+function handleCreateVote(){
     VoteFactory.createVote();
 }
-function showVote(){
+function handleShowVote(){
     VoteFactory.searchVoteByName();
 }
 
 
 //====================>按钮事件    投票界面
-function registerToVote(vote_addr, xi){
-    Vote.registerToVote('0xc7a6C2Db9621DC94467c4B866A0ACE917E614678',
-         Math.floor(Math.random()*(63-1+1)+1));
+function handleRegisterVote(vote_addr, xi){
+    Vote.registerToVote('0x3770EC81F3ee0Aae39Ff6ac3920e6B90E5fAE314', 61);
 
     // Vote.registerToVote(vote_addr, xi);
 }
-function encryptToVote(vote_addr){
+function handleEncryptVote(vote_addr){
     //例子2
-    let result=prompt("请输入私钥和候选人编号(','分隔;编号从0开始)","61, 0"); 
+    let result=prompt("请输入私钥和候选人编号(','分隔;编号从0开始)","61, 1"); 
     result = result.split(",");
     let xi = result[0] , voteNum = result[1] 
-    Vote.encryptToVote('0xc7a6C2Db9621DC94467c4B866A0ACE917E614678', voteNum, xi);
+    Vote.encryptToVote('0x3770EC81F3ee0Aae39Ff6ac3920e6B90E5fAE314', voteNum, xi);
+
+}
+function handleDecryptVote(vote_addr, xi){
 
 }
 
