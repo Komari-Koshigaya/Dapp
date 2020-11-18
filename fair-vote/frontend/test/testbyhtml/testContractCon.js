@@ -12,10 +12,11 @@ class Util{
     //高效指数取模运算（蒙哥马利算法）
     static montgomery(g, k, p){//求 g^k mod p
         let res = 1;
-        while(k){
-            if(k & 1)    res = (res*g) % p;//odd
+        while( k > 0){
+            if(k % 2 === 1)    res = (res*g) % p;//odd
             k >>= 1;
-            g = (g*g) % p
+            g = ( BigInt(g) * BigInt(g) ) % BigInt(p);//此处必须使用bigint类型 否则会溢出  Number的最大数 2**53-1
+            g = Number(g);
         }
         return res;
     }
@@ -201,7 +202,7 @@ class Vote{
         //获取投票参数
         let voteInfo = await this.getVoteInfo(voteInstance);
         // console.log(voteInfo);
-        let p = voteInfo[1].p, g=voteInfo[1].g, q=voteInfo[3], o = +voteInfo[4];
+        let p = voteInfo[1].p, g=voteInfo[1].g, q=voteInfo[3], o = Number( voteInfo[4] );
         //获取所有投票人的公钥
         let voterList = await this.getVoterInfo(voteInstance),yiList=[], currVoterYi=Util.montgomery(g, xi, p);
         voterList.forEach( item => yiList.push(item.y) );
@@ -238,8 +239,8 @@ class Vote{
         bjList[voteNum] = Util.montgomery(Yi, w, p) ;
 
         let c = Connect.web3.utils.keccak256('' + g + currVoterYi + vencVi);
-        c = Number(c) % p;
-        djList[voteNum] = c - djList.reduce((x,y)=>x+y);
+        // c = Number(c) % p;
+        djList[voteNum] = ( Number(c) - djList.reduce((x,y)=>x+y) ) % p;
         rjList[voteNum] = w - xi*djList[voteNum];
 
         console.log(`Successful calculate the ZK when encrypting the voteing!
@@ -303,7 +304,7 @@ function handleEncryptVote(vote_addr){
     //例子2
     let result=prompt("请输入私钥和候选人编号(','分隔;编号从0开始)","61, 1"); 
     result = result.split(",");
-    let xi = result[0] , voteNum = result[1] 
+    let xi = result[0] , voteNum = Number( result[1] );
     Vote.encryptToVote('0x3770EC81F3ee0Aae39Ff6ac3920e6B90E5fAE314', voteNum, xi);
 
 }
