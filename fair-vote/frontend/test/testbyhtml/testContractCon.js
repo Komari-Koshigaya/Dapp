@@ -190,30 +190,36 @@ class Vote{
                 console.warn(`${result.status}  向 ${voteInstance._address} 投票注册失败, ${result.msg}`);
         })
         .on('error', function(error) { // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
+            alert('不在投票注册时间内! 请稍后重试！')
             console.error(error)
         });
     }
 
 
     //2.加密投票
+    static async calculateYi(voteInstance, currVoterYi){
+        let voterList = await this.getVoterInfo(voteInstance), yiList=[];
+        voterList.forEach( item => yiList.push(item.y) );
+        //计算加密投票
+        let Yi = ( yiList.reduce((x,y)=>x*y) / currVoterYi );  //去除i自己公钥的连乘
+        return new Promise(resolve=>resolve(Yi));
+    }
+
     static async encryptToVote(voteAddress,voteNum,xi){
         //获取投票实例
         let voteInstance = this.getVoteInstance(voteAddress);
         //获取投票参数
         let voteInfo = await this.getVoteInfo(voteInstance);
-        // console.log(voteInfo);
+
         let p = voteInfo[1].p, g=voteInfo[1].g, q=voteInfo[3], o = Number( voteInfo[4] );
-        //获取所有投票人的公钥
-        let voterList = await this.getVoterInfo(voteInstance),yiList=[], currVoterYi=Util.montgomery(g, xi, p);
-        voterList.forEach( item => yiList.push(item.y) );
+        let currVoterYi=Util.montgomery(g, xi, p);
         //计算加密投票
-        let Yi = ( yiList.reduce((x,y)=>x*y) / currVoterYi );  //去除i自己公钥的连乘
+        let Yi = await this.calculateYi(voteInstance, currVoterYi);  //去除i自己公钥的连乘
         let vencVi = g **( 2**(voteNum*q) ) * Util.montgomery(Yi, xi, p) ;
 
         console.log(`Successful get the vote info when encrypting the voteing!
-            voteAddress: '${voteAddress}', voteNum: ${voteNum}, xi: ${xi},
-            p: ${p}, g: ${g}, q: ${q}, o: ${o}, yiList: [${yiList}],
-            currVoterYi: ${currVoterYi}, Yi: ${Yi}, vencVi: ${vencVi}`);
+            voteAddress: '${voteAddress}', voteNum: ${voteNum}, xi: ${xi}, p: ${p}, 
+            g: ${g}, q: ${q}, o: ${o}, currVoterYi: ${currVoterYi}, Yi: ${Yi}, vencVi: ${vencVi}`);
 
 
         // 构造 ZK
@@ -267,15 +273,61 @@ class Vote{
                 console.warn(`${result.status}  向 ${voteInstance._address} 加密投票 ${voteNum} 号失败, ${result.msg}`);
         })
         .on('error', function(error) { // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
-            alert('当前投票尚未开始! 请稍后重试！')
+            alert('不在加密投票时间内! 请稍后重试！')
             console.error(error)
         });
     }
 
 
     //3.解密 
-    static async decryptToVote(voteAddress){
+    static async decryptToVote(voteAddress, xi){
+        //获取投票实例
+        let voteInstance = this.getVoteInstance(voteAddress);
+        //获取投票参数
+        let voteInfo = await this.getVoteInfo(voteInstance);
 
+        let p = voteInfo[1].p, g=voteInfo[1].g, currVoterYi=Util.montgomery(g, xi, p);;
+        //计算解密vi
+        let Yi = await this.calculateYi(voteInstance, currVoterYi);  //去除i自己公钥的连乘
+        let vdecVi = Util.montgomery(Yi, xi, p) ;
+
+
+        // 构造 ZK
+        let ppow=p*p, w = Util.getRandom(ppow + p, ppow);//(p^2+p - p^2)
+        let a1 = Util.montgomery(Yi, w, p), a2 = Util.montgomery(g, w, p);
+        let c = Connect.web3.utils.keccak256('' + a1 + a2);
+        c = Number(c) % p;
+        let r = w - xi * c;
+
+        console.log(`Successful calculate the ZK when decrypting the voteing!
+            p: ${p}, g: ${g}, currVoterYi: ${currVoterYi}, Yi: ${Yi}, 
+            vdecVi: ${vdecVi}, r ${r}, a1 ${a1}, a2 ${a2}, c ${c}`)
+
+
+        //向该投票合约注册公钥
+        voteInstance.methods.Decrypt(r, a1, a2, c, vdecVi, Yi, currVoterYi)
+        .send({
+            from: Connect.defaultAccount,
+            gas: 2721975
+        })
+        .on('receipt', function(receipt){
+            //通过合约事件来判断 合约的验证是否通过
+            console.log(receipt)
+            let result = receipt.events.NewResult.returnValues;//event的返回值
+            if(result.status)   {//合约验证通过
+                let msg = `${result.status}  向 ${voteInstance._address} 解密投票 成功！`;
+                layer.msg( msg, {time: 2000, icon:1});
+                console.log(msg)
+            }else {   //合约验证失败
+                let msg = `${result.status}  向 ${voteInstance._address} 解密投票 失败, ${result.msg}`;
+                layer.msg( msg, {time: 2000, icon:2});
+                console.warn( msg );
+            }
+        })
+        .on('error', function(error) { 
+            alert('不在解密投票时间内! 请稍后重试！')
+            console.error(error)
+        });
     }
 }
 
@@ -296,7 +348,7 @@ function handleShowVote(){
 
 //====================>按钮事件    投票界面
 function handleRegisterVote(vote_addr, xi){
-    Vote.registerToVote('0x3770EC81F3ee0Aae39Ff6ac3920e6B90E5fAE314', 61);
+    Vote.registerToVote('0x771a8D1200E582011674AE3ed0257ae11ceEbFD1', 61);
 
     // Vote.registerToVote(vote_addr, xi);
 }
@@ -305,10 +357,10 @@ function handleEncryptVote(vote_addr){
     let result=prompt("请输入私钥和候选人编号(','分隔;编号从0开始)","61, 1"); 
     result = result.split(",");
     let xi = result[0] , voteNum = Number( result[1] );
-    Vote.encryptToVote('0x3770EC81F3ee0Aae39Ff6ac3920e6B90E5fAE314', voteNum, xi);
+    Vote.encryptToVote('0x771a8D1200E582011674AE3ed0257ae11ceEbFD1', voteNum, xi);
 
 }
 function handleDecryptVote(vote_addr, xi){
-
+    Vote.decryptToVote('0x771a8D1200E582011674AE3ed0257ae11ceEbFD1', 61);
 }
 

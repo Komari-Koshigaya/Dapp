@@ -20,6 +20,7 @@ contract Vote {
     TimeValue _timeValue;
     uint q = 1;    //选票所需
     uint o = 0;    //候选人个数
+    uint s = 13;    //安全参数
     uint maxnum = 0;    //最大投票人个数
     
     struct VoterInfo {
@@ -57,8 +58,8 @@ contract Vote {
     }
     
     //投票信息获取函数
-    function GetVoteInfo() public view returns(string memory, ElGamalValue memory, TimeValue memory, uint, uint){
-        return (voteName, _ElGamalValue, _timeValue, q, o);
+    function GetVoteInfo() public view returns(string memory, ElGamalValue memory, TimeValue memory, uint, uint, uint){
+        return (voteName, _ElGamalValue, _timeValue, q, o, s);
     }
     
     //投票人信息获取函数
@@ -121,13 +122,12 @@ contract Vote {
     
     //解密函数
     function Decrypt(uint r, uint a1, uint a2, uint c, uint _vdec, uint Y, uint y) public{
-        require((_timeValue.encryptEndTime < now) && (_timeValue.decryptEndTime > now), "Not Decrypt Time.");
+        // require((_timeValue.encryptEndTime < now) && (_timeValue.decryptEndTime > now), "Not Decrypt Time.");
         uint m1 = Montgomery(Y,r,_ElGamalValue.p);
         uint n1 = Montgomery(_vdec,c,_ElGamalValue.p);
         uint m2 = Montgomery(y,c,_ElGamalValue.p);
-        m2 = (a2 * m2) % _ElGamalValue.p;
         uint n2 = Montgomery(_ElGamalValue.g,r,_ElGamalValue.p);
-        if ((a1 == (m1 * n1) % _ElGamalValue.p) && (m2 == n2)){
+        if ((a1 == (m1 * n1) % _ElGamalValue.p) && (a2 == (m2 * n2) % _ElGamalValue.p)){
             voterList[voters[y]].vdec = _vdec;
             voterList[voters[y]].isHonest = true;
             emit NewResult(true,"Decrypt success");
