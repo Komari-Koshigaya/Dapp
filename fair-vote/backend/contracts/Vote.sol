@@ -138,7 +138,7 @@ contract Vote {
     
     //构造函数
     function Assist(uint r, uint a1, uint a2, uint c, uint _vass, uint h, uint y) public{
-        require((_timeValue.encryptEndTime < now) && (_timeValue.assistEndTime > now), "Not Assist Time.");
+        // require((_timeValue.encryptEndTime < now) && (_timeValue.assistEndTime > now), "Not Assist Time.");
         uint m1 = Montgomery(h,r,_ElGamalValue.p);
         uint n1 = Montgomery(_vass,c,_ElGamalValue.p);
         uint m2 = Montgomery(y,c,_ElGamalValue.p);

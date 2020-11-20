@@ -279,7 +279,7 @@ class Vote{
     }
 
 
-    //3.解密 
+    //3.解密   带有时间锁 t3时上链
     static async decryptToVote(voteAddress, xi){
         //获取投票实例
         let voteInstance = this.getVoteInstance(voteAddress);
@@ -301,7 +301,7 @@ class Vote{
 
         console.log(`Successful calculate the ZK when decrypting the voteing!
             p: ${p}, g: ${g}, currVoterYi: ${currVoterYi}, Yi: ${Yi}, 
-            vdecVi: ${vdecVi}, r ${r}, a1 ${a1}, a2 ${a2}, c ${c}`)
+            vdecVi: ${vdecVi}, r: ${r}, a1: ${a1}, a2: ${a2}, c: ${c}`)
 
 
         //向该投票合约注册公钥
@@ -317,11 +317,62 @@ class Vote{
             if(result.status)   {//合约验证通过
                 let msg = `${result.status}  向 ${voteInstance._address} 解密投票 成功！`;
                 layer.msg( msg, {time: 2000, icon:1});
-                console.log(msg)
             }else {   //合约验证失败
                 let msg = `${result.status}  向 ${voteInstance._address} 解密投票 失败, ${result.msg}`;
                 layer.msg( msg, {time: 2000, icon:2});
-                console.warn( msg );
+            }
+        })
+        .on('error', function(error) { 
+            alert('不在解密投票时间内! 请稍后重试！')
+            console.error(error)
+        });
+    }
+
+    //4.构造投票 和decrypt相同的nonce 但付出更高的手续费 从而比decrypt具有更高的优先级
+    static async constructVote(voteAddress, xi){
+        let voteInstance = this.getVoteInstance(voteAddress);        //获取投票实例
+        /* let voteInfo = await this.getVoteInfo(voteInstance);        //获取投票参数
+        // let currGasPrice = await Connect.web3.eth.getGasPrice();        //获取当前网络的gasprice*/
+        //同时获取当前网络的gasprice 、 投票参数、投票人信息
+        let [currGasPrice, voteInfo, voterList] = await Promise.all([Connect.web3.eth.getGasPrice(), 
+            this.getVoteInfo(voteInstance), this.getVoterInfo(voteInstance)]);
+
+        let p = voteInfo[1].p, g=voteInfo[1].g, currVoterYi=Util.montgomery(g, xi, p);
+        console.log(voterList)
+        let temp = 1;
+        voterList.forEach(item=>temp*=item.y);
+        let hi= temp / currVoterYi, vassVi = Util.montgomery(hi, xi, p);
+
+
+        // 构造 ZK
+        let ppow=p*p, w = Util.getRandom(ppow + p, ppow);//(p^2+p - p^2)
+        let a1 = Util.montgomery(hi, w, p), a2 = Util.montgomery(g, w, p);
+        let c = Connect.web3.utils.keccak256('' + a1 + a2);
+        c = Number(c) % p;
+        let r = w - xi * c;
+
+        console.log(`Successful calculate the ZK when assisting the voteing!
+            p: ${p}, g: ${g}, currVoterYi: ${currVoterYi}, hi: ${hi}, 
+            vassVi: ${vassVi}, r: ${r}, a1: ${a1}, a2: ${a2}, c: ${c}`)
+
+
+        //向该投票正式投票
+        voteInstance.methods.Assist(r, a1, a2, c, vassVi, hi, currVoterYi)
+        .send({
+            from: Connect.defaultAccount,
+            gas: 2721975,
+            gasPrice: currGasPrice * 4
+        })
+        .on('receipt', function(receipt){
+            //通过合约事件来判断 合约的验证是否通过
+            console.log(receipt)
+            let result = receipt.events.NewResult.returnValues;//event的返回值
+            if(result.status)   {//合约验证通过
+                let msg = `${result.status}  向 ${voteInstance._address} 构造投票 成功！`;
+                layer.msg( msg, {time: 2000, icon:1});
+            }else {   //合约验证失败
+                let msg = `${result.status}  向 ${voteInstance._address} 构造投票 失败, ${result.msg}`;
+                layer.msg( msg, {time: 2000, icon:2});
             }
         })
         .on('error', function(error) { 
@@ -347,8 +398,9 @@ function handleShowVote(){
 
 
 //====================>按钮事件    投票界面
+let test_address = '0x1B3820fdF39E25046ee187cE8609a2393d169500', test_xi = 61;
 function handleRegisterVote(vote_addr, xi){
-    Vote.registerToVote('0x771a8D1200E582011674AE3ed0257ae11ceEbFD1', 61);
+    Vote.registerToVote(test_address, 61);
 
     // Vote.registerToVote(vote_addr, xi);
 }
@@ -357,10 +409,14 @@ function handleEncryptVote(vote_addr){
     let result=prompt("请输入私钥和候选人编号(','分隔;编号从0开始)","61, 1"); 
     result = result.split(",");
     let xi = result[0] , voteNum = Number( result[1] );
-    Vote.encryptToVote('0x771a8D1200E582011674AE3ed0257ae11ceEbFD1', voteNum, xi);
+    Vote.encryptToVote(test_address, voteNum, xi);
 
 }
 function handleDecryptVote(vote_addr, xi){
-    Vote.decryptToVote('0x771a8D1200E582011674AE3ed0257ae11ceEbFD1', 61);
+    Vote.decryptToVote(test_address, test_xi);
 }
+function handleConstructVote(vote_addr, xi){
+    Vote.constructVote(test_address, test_xi);
+}
+
 
