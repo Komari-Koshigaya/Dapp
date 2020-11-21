@@ -24,6 +24,42 @@ class Util{
     static getRandom(max, min){
         return Math.floor( Math.random() *( max - min + 1 ) + min );
     }
+
+    static getMultiReverseByExEuclidean(x, p){
+        let m=[1,0,p], n=[0,1,x], temp=new Array(3), q=0, flag=true;
+        while(flag) {
+            q= Math.floor( m[2]/n[2] );
+            for(let i=0;i<3;i++) {
+                temp[i]=m[i]-q*n[i];
+                m[i]=n[i];
+                n[i]=temp[i];
+            }
+            if(n[2]==1) {
+                if(n[1]<0) {
+                    n[1]=n[1]+p;
+                }
+                return n[1]
+            }
+            if(n[2]==0) {
+                flag=false;
+            }
+        }
+        return 0;
+    }
+
+    static getMultiReverseByFM(x, p){
+        let res=1,d=p-2;
+        while(d){
+            if( d % 2 === 1){
+                res *= x;
+                res %= p;
+            }
+            x *= x;
+            x %= p;
+            d = Math.floor(d/2) ;
+        }
+        return res;
+    }
 }
 
 
@@ -380,10 +416,74 @@ class Vote{
             console.error(error)
         });
     }
+
+    //5. 若4未上链 3上链 则可执行恢复投票来得到4失败的投票vi
+    static async recoverVote(voteAddress, xi){
+        let voteInstance = this.getVoteInstance(voteAddress);        //获取投票实例
+        let [voteInfo, voterList] = await Promise.all([ 
+            this.getVoteInfo(voteInstance), this.getVoterInfo(voteInstance)]);
+
+        let p = voteInfo[1].p, g=voteInfo[1].g, currVoterYi=Util.montgomery(g, xi, p);
+        console.log(voterList)
+
+        let yiIndex = 0, yiBeforeMulti = 1, yiAfterMulti = 1;
+        for(let i=0;i<voterList.length;i++){
+            if(voterList[i].y === currVoterYi){
+                yiIndex = i;
+            }
+        }
+        voterList.forEach((item,index)=>{
+            if( index < yiIndex && ( item.notFailer === false || item.isHonest === false ) ) 
+                yiBeforeMulti *= item.y
+            else if (index > yiIndex  && ( item.notFailer === false || item.isHonest === false ) )  
+                yiAfterMulti *= item.y;
+        });
+        let hj= yiAfterMulti * Util.getMultiReverseByExEuclidean(yiBeforeMulti, p);
+        let vrecVi = Util.montgomery(hj, xi, p);
+
+
+        // 构造 ZK
+        let ppow=p*p, w = Util.getRandom(ppow + p, ppow);//(p^2+p - p^2)
+        let a1 = Util.montgomery(hj, w, p), a2 = Util.montgomery(g, w, p);
+        let c = Connect.web3.utils.keccak256('' + a1 + a2);
+        c = Number(c) % p;
+        let r = w - xi * c;
+
+        console.log(`Successful calculate the ZK when recovering the voteing!
+            p: ${p}, g: ${g}, yiIndex: ${yiIndex}, yiBeforeMulti: ${yiBeforeMulti}, yiAfterMulti: ${yiAfterMulti}, voterList: [${voterList}],
+            currVoterYi: ${currVoterYi}, hj: ${hj}, vrecVi: ${vrecVi}, r: ${r}, a1: ${a1}, a2: ${a2}, c: ${c}`)
+
+
+        voteInstance.methods.Recover(r, a1, a2, c, vrecVi, hj, currVoterYi)
+        .send({
+            from: Connect.defaultAccount,
+            gas: 2721975,
+        })
+        .on('receipt', function(receipt){
+            //通过合约事件来判断 合约的验证是否通过
+            console.log(receipt)
+            let result = receipt.events.NewResult.returnValues;//event的返回值
+            if(result.status)   {//合约验证通过
+                let msg = `${result.status}  向 ${voteInstance._address} 构造投票 成功！`;
+                layer.msg( msg, {time: 2000, icon:1});
+            }else {   //合约验证失败
+                let msg = `${result.status}  向 ${voteInstance._address} 构造投票 失败, ${result.msg}`;
+                layer.msg( msg, {time: 2000, icon:2});
+            }
+        })
+        .on('error', function(error) { 
+            alert('不在解密投票时间内! 请稍后重试！')
+            console.error(error)
+        });
+    }
 }
 
 
 
+// //计算特定投票的投票结果
+// let getVoteResult = async vote_addr=>{
+//     let voteInstance = await Vote.getVoteInfo(vote_addr);
+// };
 
 
 
@@ -410,13 +510,15 @@ function handleEncryptVote(vote_addr){
     result = result.split(",");
     let xi = result[0] , voteNum = Number( result[1] );
     Vote.encryptToVote(test_address, voteNum, xi);
-
 }
 function handleDecryptVote(vote_addr, xi){
     Vote.decryptToVote(test_address, test_xi);
 }
 function handleConstructVote(vote_addr, xi){
     Vote.constructVote(test_address, test_xi);
+}
+function handleRecoverVote(vote_addr, xi){
+    Vote.recoverVote(test_address, test_xi);
 }
 
 
