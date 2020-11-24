@@ -74,6 +74,8 @@ truffle compile
 
 ### 5.部署合约
 
+#### 5.1 使用truffle部署
+
 项目文件夹下的 `migrations` 目录 这里面有几个刚刚contracts文件夹中自动生成的合约的migration.js
 仿造它，为我们的合约编写这些migrations.js。
 
@@ -155,12 +157,48 @@ truffle migrate --network ropsten  # 此命令用于选择网络运行，  ropst
 > }
 > ~~~
 
+#### 5.2 使用web3.js部署(不推荐)
+
+> 此种方式需要编译好的合约 `bytecode`  信息 (可使用 solc、remix 或 `truffle compile`)
+
+```js
+let bytecode = '0x6080604052348...' // 字节码信息, 对应truffle compile后的 bytecode 字段
+let account = '0xa22BcD941c53791Cc4C6eCD84cd149Bc4556896f'  //你的区块链账户
+//部署合约
+web3.eth.sendTransaction({
+    from: account,
+    to: 0,  //合约部署是一笔发送到 地址为 0 的特殊交易
+    data: bytecode,
+    gas: 2721975, 
+    gasPrice: 20000000000
+})
+.on('receipt', function(receipt){
+    //console.log(receipt);
+    console.log('The contract address is : ' + receipt.contractAddress)
+    // The contract address is : 0x434Eb989f986F233932aB53F8ED90c514F975f8D
+})
+
+
+
+//`可选` 根据部署合约的交易hash 查看交易信息
+web3.eth.getTransactionReceipt('0xeaf0f27ceda8e672979024a55ea4d390cef478e533b7bab1e2c2aa1adae76500').then(console.log);
+
+web3.eth.getTransaction('0xeaf0f27ceda8e672979024a55ea4d390cef478e533b7bab1e2c2aa1adae76500').then(console.log)
+```
+
+> 即可将合约部署到区块链   合约地址在 `receipt.contractAddress`   交易hash在`receipt.transactionHash`
+>
+> `getTransactionReceipt`和 `getTransaction` 的区别：
+>
+> `getTransactionReceipt`只能看到交易收据-交易hash、区块hash、区块号、合约地址、发送方、汽油费、**日志**
+>
+> `getTransaction`  可以看到 - 交易hash、区块hash、区块号、接收方、发送方、**input**、nonce、r、s、v、value
 
 ### 6.测试合约
 
 现在我们来测试一下智能合约，测试用例可以用 JavaScript 或 Solidity 来编写，这里使用 Solidity。
 
-#### 使用测试用例
+#### 6.1使用测试用例
 
 在 `test` 目录下新建一个 `TestVote.sol`，[编写测试合约](https://learnblockchain.cn/docs/truffle/testing/writing-tests-in-solidity.html)
 
@@ -187,7 +225,7 @@ contract TestAdoption {
 
 在终端中，执行 `truffle test` 即可看到测试结果
 
-#### 在truffle console进行手动测试
+#### 6.2 在truffle console进行手动测试
 
 > 测试之前需要 启动 **ganache-cli** 和 **truffle migrate** 进行部署
 >
@@ -238,6 +276,8 @@ contract TestAdoption {
 >   ]
 > }
 
+
+
 ## 运行步骤
 
 ~~~bash
@@ -251,7 +291,7 @@ truffle(development)> Vote.address  # 查看 Adoption.sol合约的地址
 
 > 如何查看 合约的abi   前提条件： 已将合约部署到区块链 
 >
-> 执行 `truffle migrate` 后，会生成 `build/contracts/Vote.json` ,在该json文件里可以看到 `abi`字段
+> 执行 `truffle migrate` 后，会生成 `build/contracts/Vote.json` ,在该json文件里可以看到 `abi`字段 和 `合约地址信息`
 
 
 

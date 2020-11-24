@@ -2841,12 +2841,12 @@ let VoteFactoryRepository = {
     "5777": {
       "events": {},
       "links": {},
-      "address": "0x1f0ea5Ff448Ee7B91a5FCfCa6a9AC9d52cFEb9A6",
+      "address": "0x51b27e249E0c419f52211c87F7CE7842fEFd0B71",
       "transactionHash": "0xb2a42df905df453fae9d82f12460d824294f3740ff764ec07fd27f92398ad9b3"
     }
   },
   "schemaVersion": "3.3.1",
-  "updatedAt": "2020-11-19T19:57:55.414Z",
+  "updatedAt": "2020-11-24T11:15:55.414Z",
   "networkType": "ethereum",
   "devdoc": {
     "methods": {}

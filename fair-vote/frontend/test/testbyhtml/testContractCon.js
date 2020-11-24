@@ -1,6 +1,6 @@
 // migrate --reset --compile-all ==============> 配置信息
 class Config{
-    static JSONRPC_WS_ENDPOINT = 'ws://192.168.1.102:8545';
+    static JSONRPC_WS_ENDPOINT = 'ws://192.168.1.103:8545';
     static VOTEFACTORY_ADDRESS = VoteFactoryRepository.networks['5777'].address;
     static VOTEFACTORY_ABI = VoteFactoryRepository.abi;
 
@@ -97,6 +97,7 @@ class Connect{
         this.defaultAccount = await this.setDefaultAccount()
         return this.defaultAccount;
     }
+
 
     //初始化操作 调用上面的函数 初始化 web3和默认账户
     static init(){
