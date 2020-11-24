@@ -276,6 +276,31 @@ contract TestAdoption {
 >   ]
 > }
 
+#### 6.3 使用 web3.js 测试合约
+
+> 假设合约中有一个 函数 ` function withdraw(uint withdraw_amount) public {...}`
+
+这个函数的定义则是  `withdraw(uint256)`   (uint 也就是uint256)
+
+
+
+```js
+//1. 计算这个函数的 Keccak-256哈希值
+web3.utils.sha3("withdraw(uint256)")
+//"0x2e1a7d4d13322e7b96f9a57413e1525c250fb7a9021cf91d1540d5b69f16a49f"
+//取前4个字节 0x2e1a7d4d 作为“函数选择器” 用来告诉evm调用哪一个函数
+
+//2. 计算 withdraw_amount 的编码  十六进制大端字节序无符号256位整数，采用wei为单位
+withdraw_amount = web3.utils.toWei('0.01','ether')
+//"10000000000000000"
+withdraw_amount_hex = web3.utils.toHex(withdraw_amount)
+//"0x2386f26fc10000"
+
+//3.构造交易的data字段
+//函数选择器放在前面，参数的16进制放在尾部， 两者之间用0填充，需填满 32字节 此处即填21个字节的0
+data = '0x2e1a7d4d00000000000000000000000000000000000000000000000000000000000000000000000000000000002386f26fc10000'
+```
+
 
 
 ## 运行步骤
