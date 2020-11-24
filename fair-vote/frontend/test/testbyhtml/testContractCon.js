@@ -477,14 +477,48 @@ class Vote{
             console.error(error)
         });
     }
+
+    //6.  计算特定投票的投票结果
+    static async tallyVote(voteAddress){
+        let voteInstance = this.getVoteInstance(voteAddress);        //获取投票实例
+        let [voteInfo, voterList] = await Promise.all([ 
+            this.getVoteInfo(voteInstance), this.getVoterInfo(voteInstance)]);
+
+        let failerList = [], honestList=[];
+        voterList.forEach((item,index)=>{
+            if( item.notFailer === false || item.isHonest === false ){//投票失败者集合
+                failerList.push(item);
+
+            } else  honestList.push(item);//投票成功者集合
+        });
+
+        let tallyGvi = 1;
+        if(failerList.length === 0){//所有人均诚实投票
+            for(let item of failerList){
+                tallyGvi *= ( item.venc / item.vass );
+            }
+        }else{
+            let honestTallyGvi = 1, failerTallyGvi = 1;
+            //计算 i不属于 failers
+            for(let item of honestList){
+                honestTallyGvi *= item.vrec * ( item.venc / item.vass );
+            }
+            //计算i属于failers
+            for(let item of failerList){
+                failerTallyGvi *= item.venc * item.vdec;
+            }
+            tallyGvi = honestTallyGvi * failerTallyGvi;
+        }
+
+         console.log(`Successful talling the vote!
+            failerList: [${failerList}], honestList: [${honestList}], tallyGvi: ${tallyGvi}, `)
+        return tallyGvi;
+    }
 }
 
 
 
-// //计算特定投票的投票结果
-// let getVoteResult = async vote_addr=>{
-//     let voteInstance = await Vote.getVoteInfo(vote_addr);
-// };
+
 
 
 
@@ -499,7 +533,7 @@ function handleShowVote(){
 
 
 //====================>按钮事件    投票界面
-let test_address = '0x1B3820fdF39E25046ee187cE8609a2393d169500', test_xi = 61;
+let test_address = '0x1457d634778608cc7B6Ce13e1daeC75Cf881490c', test_xi = 61;
 function handleRegisterVote(vote_addr, xi){
     Vote.registerToVote(test_address, 61);
 
@@ -521,5 +555,7 @@ function handleConstructVote(vote_addr, xi){
 function handleRecoverVote(vote_addr, xi){
     Vote.recoverVote(test_address, test_xi);
 }
-
+function handleTallyVote(vote_addr){
+    Vote.tallyVote(test_address);
+}
 
