@@ -5,7 +5,7 @@ class Config{
     static VOTEFACTORY_ABI = VoteFactoryRepository.abi;
 
     static VOTE_ABI = VoteRepository.abi;
-
+    static ACCOUNT_UNLOCK_DURATION = 600;//账号解锁持续时间
 }
 class Util{
 
@@ -25,6 +25,7 @@ class Util{
         return Math.floor( Math.random() *( max - min + 1 ) + min );
     }
 
+    //扩展欧几里得 模逆运算
     static getMultiReverseByExEuclidean(x, p){
         let m=[1,0,p], n=[0,1,x], temp=new Array(3), q=0, flag=true;
         while(flag) {
@@ -47,6 +48,7 @@ class Util{
         return 0;
     }
 
+    //费马定理模逆运算 知识和p是素数的情况
     static getMultiReverseByFM(x, p){
         let res=1,d=p-2;
         while(d){
@@ -103,6 +105,21 @@ class Connect{
     static init(){
         this.getWeb3();
         this.getDefaultAccount();
+    }
+
+    //解锁账号 存储密钥留于签名  待完善
+    static unlockAccount(accountAddr, accountPwd){
+        return new Promise(resolve=>{
+            this.web3.eth.personal.unlockAccount('0xa22BcD941c53791Cc4C6eCD84cd149Bc4556896f','0x',
+                                                    Config.ACCOUNT_UNLOCK_DURATION)
+            .then(_=>resolve(true))
+            .catch(error=>{
+                console.log(error);
+                resolve(false);
+            });
+
+        });
+        
     }
 }
 
