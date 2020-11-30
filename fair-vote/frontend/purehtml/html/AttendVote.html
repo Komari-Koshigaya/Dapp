@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="stylesheet" href="../CSS/attendVote.css" type="text/css">
+    <link rel="stylesheet" href="../CSS/popUps.css" type="text/css">
+    <script src="../JS/Utils.js"></script>
+    <script src="../JS/AttendVote.js" charset="utf-8"></script>
+
+</head>
+<body>
+    <div class="option">
+        <ul class="left-option">
+            <li><button class="left-button" onclick="LeftOption(0)">Step1：注册</button></li>
+            <li><button class="left-button" onclick="LeftOption(1)">Step2：加密</button></li>
+            <li><button class="left-button" onclick="LeftOption(2)">Step3：解密</button></li>
+            <li><button class="left-button" onclick="LeftOption(3)">Step4：构造</button></li>
+            <li><button class="left-button" onclick="LeftOption(4)">Step5：恢复</button></li>
+        </ul>
+    </div>
+    <div class="search">
+        <select class="search-select" id="searchSelect" onchange="SearchBaseChange(this.selectedIndex)">
+            <option value="0">地址</option>
+            <option value="1">名称</option>
+        </select>
+        <input class="textarea-search" placeholder="请输入投票地址..." id="SearchText"></input>
+        <img src="../images/search.png" class="img-search" onclick="Search()">
+    </div>
+        <div class="vote-info">
+            <p class="vote-name" name="voteName">投票名称</p>
+        </div>
+    <div class="page" id="RegisterPage">
+        <div class="info-div">
+            <div class="list-div">
+                <p class="label">公钥：</p>
+                <input class="input-textarea" id="PublicKey"></input>
+            </div>
+            <div class="list-div">
+                <p class="label">证明：</p>
+                <input class="input-textarea" id="RegisterProof"></input>
+            </div>
+        </div>
+        <div class="btnRegister-div">
+            <button class="button-register" onclick="popBox()">自动生成</button>
+            <button class="button-register" onclick="Send()">上链</button>
+        </div>
+    </div>
+    <div class="page" id="EncryptPage" style="display: none;">
+        <div class="info-div">
+            <div class="list-div">
+                <p class="label">加密投票：</p>
+                <input class="input-textarea" id="EncryptVote"></input>
+            </div>
+            <div class="list-div">
+                <p class="label">证明：</p>
+                <input class="input-textarea" id="EncryptProof"></input>
+            </div>
+        </div>
+        <div class="btnRegister-div">
+            <button class="button-register" onclick="popBox()">自动生成</button>
+            <button class="button-register" onclick="Send()">上链</button>
+        </div>
+    </div>
+    <div class="page" id="DecryptPage" style="display: none;">
+        <div class="info-div">
+            <div class="list-div">
+                <p class="label">解密投票：</p>
+                <input class="input-textarea" id="DecryptVote"></input>
+            </div>
+            <div class="list-div">
+                <p class="label">证明：</p>
+                <input class="input-textarea" id="DecryptProof"></input>
+            </div>
+        </div>
+        <div class="btnRegister-div">
+            <button class="button-register" onclick="popBox()">自动生成</button>
+            <button class="button-register" onclick="Send()">上链</button>
+        </div>
+    </div>
+    <div class="page" id="AssistPage" style="display: none;">
+        <div class="info-div">
+            <div class="list-div">
+                <p class="label">构造投票：</p>
+                <input class="input-textarea" id="AssistVote"></input>
+            </div>
+            <div class="list-div">
+                <p class="label">证明：</p>
+                <input class="input-textarea" id="AssistProof"></input>
+            </div>
+        </div>
+        <div class="btnRegister-div">
+            <button class="button-register" onclick="popBox()">自动生成</button>
+            <button class="button-register" onclick="Send()">上链</button>
+        </div>
+    </div>
+    <div class="page" id="RecoverPage" style="display: none;">
+        <div class="info-div">
+            <div class="list-div">
+                <p class="label">恢复投票：</p>
+                <input class="input-textarea" id="RecoverVote"></input>
+            </div>
+            <div class="list-div">
+                <p class="label">证明：</p>
+                <input class="input-textarea" id="RecoverProof"></input>
+            </div>
+        </div>
+        <div class="btnRegister-div">
+            <button class="button-register" onclick="popBox()">自动生成</button>
+            <button class="button-register" onclick="Send()">上链</button>
+        </div>
+    </div>
+
+<div id="popLayer"></div>
+<div id="popBox">
+    <div class="close">
+        <a href="javascript:void(0)" onclick="closeBox()">X</a>
+    </div>
+    <div class="center">
+        <p class="label1">私钥：</p>
+        <input class="input-textarea1" id="voterID"></input>
+    </div>
+
+    <div class="down">
+        <a href="javascript:void(0)" onclick="closeBox()">确定</a>
+    </div>
+</div>
+
+</body>
+<script>
+    LeftOption(0);
+</script>
+</html>

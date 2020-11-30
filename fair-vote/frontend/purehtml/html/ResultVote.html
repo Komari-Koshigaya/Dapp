@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="stylesheet" href="../CSS/resultVote.css" type="text/css">
+    <script src="../JS/Utils.js"></script>
+    <script src="../JS/ResultVote.js"></script>
+</head>
+<body>
+    <div class="option">
+        <ul class="left-option">
+            <li><button class="left-button">投票结果</button></li>
+        </ul>
+    </div>
+    <div class="search">
+        <select class="search-select" id="searchSelect" onchange="SearchBaseChange(this.selectedIndex)">
+            <option value="0">地址</option>
+            <option value="1">名称</option>
+        </select>
+        <input class="textarea-search" placeholder="请输入投票地址..." id="SearchText"></input>
+        <img src="../images/search.png" class="img-search" onclick="Search()">
+    </div>
+    <div class="page">
+         <div class="vote-info">
+            <p class="vote-name" name="voteName">投票名称(已完成/未完成)</p>
+        </div>
+
+        <div class="info-div">
+            <div class="list-div">
+                <p class="label">得票最多者：</p>
+                <input class="input-textarea" id="CandidateName" readonly></input>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
