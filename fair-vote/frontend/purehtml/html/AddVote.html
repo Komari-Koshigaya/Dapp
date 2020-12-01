@@ -1,70 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-
     <link rel="stylesheet" href="../CSS/addVote.css" type="text/css">
-<!--     <script src="../js/utils.js"></script> -->
-    <script src="../js/AddVote.js"></script>
+
+    <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="../js/web3.min.js"></script>
+
+
+    <script src="../js/voteRepository.js"></script>
+    <script src="../js/voteFactoryRepository.js"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/utils.js"></script>
+
+    <script src="../js/voteFactory.js"></script>
+    <script src="../js/voteEventHandle.js"></script>
 </head>
+
 <body>
     <div class="option">
         <ul>
-            <li><p class="option-text">创建投票</p></li>
+            <li>
+                <p class="option-text">创建投票</p>
+            </li>
         </ul>
     </div>
     <div class="page">
-        <div class="info-div">
+        <form class="info-div">
             <div class="list-div">
                 <p class="label">投票名称：</p>
-                <input class="input-textarea" id="voteName1" style="font-size: 15px;"></input>
+                <input class="input-textarea" id="voteName" style="font-size: 15px;"></input>
             </div>
             <div class="list-div">
                 <p class="label">候选人个数：</p>
-                <input class="input-textarea" id="candidatesNum1" style="font-size: 15px;"></input>
+                <input class="input-textarea" id="candNum" style="font-size: 15px;"></input>
             </div>
             <div class="list-div">
                 <p class="label">最大参与人数：</p>
-                <input class="input-textarea" id="maxVoterNum1" style="font-size: 15px;"></input>
+                <input class="input-textarea" id="maxVoterNum" style="font-size: 15px;"></input>
             </div>
             <div class="list-div">
                 <p class="label">注册截止时间：</p>
-                <input type="datetime-local" class="input-textarea" id="initEndTime1">
+                <input type="datetime-local" class="input-textarea" id="regTime">
             </div>
             <div class="list-div">
                 <p class="label">加密截止时间：</p>
-                <input type="datetime-local" class="input-textarea" id="encEndTime1">
+                <input type="datetime-local" class="input-textarea" id="encTime">
             </div>
             <div class="list-div">
                 <p class="label">构造截止时间：</p>
-                <input type="datetime-local" class="input-textarea" id="assEndTime1">
+                <input type="datetime-local" class="input-textarea" id="assTime">
             </div>
             <div class="list-div">
                 <p class="label">解密截止时间：</p>
-                <input type="datetime-local" class="input-textarea" id="decEndTime1">
+                <input type="datetime-local" class="input-textarea" id="decTime">
             </div>
             <div class="list-div">
                 <p class="label">恢复截止时间：</p>
-                <input type="datetime-local" class="input-textarea" id="recEndTime1">
+                <input type="datetime-local" class="input-textarea" id="recTime">
             </div>
-        <div class="button-div">
-            <button class="button-ok" onclick="CreateVote()">创建</button>
-            <button class="button-reset" onclick="ResetInfo()">重置</button>
-        </div>
-        </div>
-        <div class="result-div" id="result" style="display: none;">
-            <div class="list-div" style="margin-bottom: 0;border-radius: 5px 5px 0 0;">
-                <p class="label">投票索引号：</p>
-                <textarea class="input-textarea" id="voteIndex"></textarea>
+            <div class="button-div">
+                <button class="button-ok" type="button" onclick="handleCreateVote()">创建</button>
+                <button class="button-reset" onclick="reset()">重置</button>
             </div>
-            <div class="list-div" style="margin-top: 0;border-radius: 0 0 5px 5px;">
-                <p class="label">投票地址：</p>
-                <textarea class="input-textarea" id="voteAddress"></textarea>
-            </div>
+        </form>
+    </div>
+    <div class="result-div" id="result" style="display: none;">
+        <div class="list-div" style="margin-bottom: 0;border-radius: 5px 5px 0 0;">
+            <p class="label">投票索引号：</p>
+            <textarea class="input-textarea" id="voteIndex"></textarea>
         </div>
-
+        <div class="list-div" style="margin-top: 0;border-radius: 0 0 5px 5px;">
+            <p class="label">投票地址：</p>
+            <textarea class="input-textarea" id="voteAddress"></textarea>
+        </div>
+    </div>
     </div>
 </body>
+
 </html>
