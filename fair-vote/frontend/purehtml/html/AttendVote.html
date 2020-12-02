@@ -9,8 +9,13 @@
     <link rel="stylesheet" href="../CSS/popUps.css" type="text/css">
 
 
+    <script src="../js/voteRepository.js"></script>
+    <script src="../js/voteFactoryRepository.js"></script>
+    <script src="../js/config.js"></script>
     <script src="../js/utils.js"></script>
-    <script src="../js/voteEventHandle.js"></script>
+    <script src="../js/voteFactory.js"></script>
+    
+    <script src="../js/voteAttendEventHandler.js"></script>
 
 </head>
 <body>
@@ -24,12 +29,12 @@
         </ul>
     </div>
     <div class="search">
-        <select class="search-select" id="searchSelect" onchange="SearchBaseChange(this.selectedIndex)">
+        <select class="search-select" id="searchSelect"  onchange="SearchBaseChange(this.selectedIndex)">
             <option value="0">地址</option>
             <option value="1">名称</option>
         </select>
         <input class="textarea-search" placeholder="请输入投票地址..." id="SearchText"></input>
-        <img src="../images/search.png" class="img-search" onclick="Search()">
+        <img src="../images/search.png" class="img-search" onclick="handleSearchVote()">
     </div>
         <div class="vote-info">
             <p class="vote-name" name="voteName">投票名称</p>
@@ -37,7 +42,7 @@
     <div class="page" id="RegisterPage">
         <div class="info-div">
             <div class="list-div">
-                <p class="label">公钥：</p>
+                <p class="label" >公钥：</p>
                 <input class="input-textarea" id="PublicKey"></input>
             </div>
             <div class="list-div">
@@ -47,7 +52,7 @@
         </div>
         <div class="btnRegister-div">
             <button class="button-register" onclick="popBox()">自动生成</button>
-            <button class="button-register" onclick="Send()">上链</button>
+            <button class="button-register" onclick="handleRegisterVote()">注册投票</button>
         </div>
     </div>
     <div class="page" id="EncryptPage" style="display: none;">
@@ -132,8 +137,8 @@
 
 </body>
 <script>
-    handleShowVote();
-    
+    // handleSearchVote();
+
     LeftOption(0);
 </script>
 </html>

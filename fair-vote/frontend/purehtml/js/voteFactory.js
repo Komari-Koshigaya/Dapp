@@ -27,18 +27,21 @@ class VoteFactory {
     }
 
     //搜索已有的投票合约
-    static searchVoteByName(voteName) {
+    static getAllVote() {
 
         let voteFactoryInstance = this.getVoteFactoryInstance();
-        let votelist = [],
-            voteObj = {};
+        let votelist = [];
         //获取 votelist
-        voteFactoryInstance.methods.GetVoteList()
+        return new Promise((resolve, reject) => {
+            voteFactoryInstance.methods.GetVoteList()
             .call({ from: parent.currAccount })
             .then(function(result) {
                 votelist = result;
-                console.log(`共有 ${result.length} 个投票` + votelist)
+                console.log(`voteFactory-getallvote: [${votelist}]`)
+                resolve(votelist)
             });
+            // .catch(error => reject(votelist));
+        });
     }
 
 }

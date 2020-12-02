@@ -43,37 +43,3 @@ function handleCreateVote() {
     VoteFactory.createVote(voteName, candNum, maxVoterNum, regTime, encTime, assTime, decTime, recTime);
 }
 
-function handleShowVote() {
-    VoteFactory.searchVoteByName();
-}
-
-function handleRegisterVote(vote_addr, xi) {
-    Vote.registerToVote(test_address, 61);
-
-    // Vote.registerToVote(vote_addr, xi);
-}
-
-function handleEncryptVote(vote_addr) {
-    //例子2
-    let result = prompt("请输入私钥和候选人编号(','分隔;编号从0开始)", "61, 1");
-    result = result.split(",");
-    let xi = result[0],
-        voteNum = Number(result[1]);
-    Vote.encryptToVote(test_address, voteNum, xi);
-}
-
-function handleDecryptVote(vote_addr, xi) {
-    Vote.decryptToVote(test_address, test_xi);
-}
-
-function handleConstructVote(vote_addr, xi) {
-    Vote.constructVote(test_address, test_xi);
-}
-
-function handleRecoverVote(vote_addr, xi) {
-    Vote.recoverVote(test_address, test_xi);
-}
-
-function handleTallyVote(vote_addr) {
-    Vote.tallyVote(test_address);
-}
