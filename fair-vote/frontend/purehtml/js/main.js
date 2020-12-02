@@ -59,7 +59,7 @@ function handleUnlockAccount() {
 }
 
 //设置右下角相应投票信息
-function SetVoteInfo(voteAddr) {
+function setVoteInfo(voteAddr) {
 
 }
 

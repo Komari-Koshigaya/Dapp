@@ -1,7 +1,9 @@
 class Vote{
+
     // //voteFactory创建vote实例后会到一个地址  根据该地址获取对应的vote实例
     static getVoteInstance(voteAddress){
-        let web3 = Connect.web3;
+        // let web3 = Connect.web3;
+        let web3 = parent.web3;
         // 获取 合约对象
         // let voteInstance = new web3.eth.Contract(Config.VOTE_ABI,voteAddress);
         return new web3.eth.Contract(Config.VOTE_ABI,voteAddress);
@@ -29,7 +31,7 @@ class Vote{
     }
 
     //1.向某个合约注册
-    static async registerToVote(voteAddress,xi){
+    static async geneRegProof(voteAddress, xi){//生成注册的证明
         //获取投票实例
         let voteInstance = this.getVoteInstance(voteAddress);
         //获取投票参数
@@ -39,16 +41,36 @@ class Vote{
         //构造 ZK
         let yi = Util.montgomery(g, xi, p),ppow=p*p;//(1-p)
         let w = Math.floor(Math.random()*( p +1)+ppow), a = Util.montgomery(g, w, p);//(1-p) 
-        let c = Connect.web3.utils.keccak256(''+g+yi+a);
-        console.log(`c: ${c} , ${Number(c)} `)
+        let c = parent.web3.utils.keccak256(''+g+yi+a);
+        // console.log(`c: ${c} , ${Number(c)} `)
         c = Number(c) % p;
         let r= BigInt(w-xi*c);
         console.log(`p: ${p}, g: ${g}, xi: ${xi}, yi: ${yi}, w: ${w}, r: ${r}, a: ${a}, c: ${c}`)
 
+        let zeroProof = {r, a, c, yi};
+        // console.log(zeroProof)
+        return zeroProof;
+    }
+    static async registerToVote(voteAddress,r,a,c,yi){
+        //获取投票实例
+        let voteInstance = this.getVoteInstance(voteAddress);
+        //获取投票参数
+        // let voteInfo = await this.getVoteInfo(voteInstance);
+        // let p = voteInfo[1].p, g= voteInfo[1].g;
+
+        // //构造 ZK
+        // let yi = Util.montgomery(g, xi, p),ppow=p*p;//(1-p)
+        // let w = Math.floor(Math.random()*( p +1)+ppow), a = Util.montgomery(g, w, p);//(1-p) 
+        // let c = Connect.web3.utils.keccak256(''+g+yi+a);
+        // console.log(`c: ${c} , ${Number(c)} `)
+        // c = Number(c) % p;
+        // let r= BigInt(w-xi*c);
+        // console.log(`p: ${p}, g: ${g}, xi: ${xi}, yi: ${yi}, w: ${w}, r: ${r}, a: ${a}, c: ${c}`)
+
         //向该投票合约注册公钥
         voteInstance.methods.Register(r, a, c, yi)
         // voteInstance.methods.Register(1, 1, 1, 1)
-        .send({ from: Connect.defaultAccount,gas: 2721975 })
+        .send({ from: parent.currAccount, gas: 2721975 })
         .on('receipt', function(receipt){
 
             //通过合约事件来判断 合约的验证是否通过

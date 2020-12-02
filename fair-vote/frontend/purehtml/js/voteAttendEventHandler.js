@@ -1,8 +1,10 @@
-let attendVote = null; //默认投票地址
+var attendVote = null; //默认投票地址
+var zeroProof = null; //证明
+
 
 function handleSearchVote() {
     setVoteName('请先搜索您想参加的投票!');
-    attendVote = null;//每次点击搜索都重置默认的投票地址
+    attendVote = null; //每次点击搜索都重置默认的投票地址
     let searchText = document.getElementById("SearchText").value;
     let index = document.getElementById("searchSelect").selectedIndex;
     if (Util.isEmpty(searchText)) {
@@ -34,14 +36,14 @@ function handleSearchVote() {
             }
         }
 
-        if(Util.isEmpty(attendVote)){
+        if (Util.isEmpty(attendVote)) {
             alert(`未找到 ${index===0?'地址':'名称'}为 ${searchText} 的投票信息!`)
         }
 
         //设置获取到的投票相关信息
         setVoteName(`您正在参加的投票： ${attendVote.name}`);
-        if(leftOption == 1)setVoteCandidate();
-        parent.SetVoteInfo(attendVote.vote);
+        if (leftOption == 1) setVoteCandidate();
+        parent.setVoteInfo(attendVote.vote);
         return voteList;
     }
 
@@ -49,10 +51,45 @@ function handleSearchVote() {
     console.log("搜索投票结束!");
 }
 
-function handleRegisterVote() {
-    Vote.registerToVote(test_address, 61);
+function handleGeneProof() {
+    zeroProof = null;
+    document.getElementById('voteXi').value = '61';
+    popBox();
+    let xi = +document.getElementById('voteXi').value;
 
-    // Vote.registerToVote(vote_addr, xi);
+    let main = async () => {
+        zeroProof = await Vote.geneRegProof(attendVote.vote, xi);
+
+        if (Util.isEmpty(zeroProof)) {
+            alert('自动生成出错！')
+            return;
+        }
+        console.log(zeroProof);
+        document.getElementById('PublicKey').value = zeroProof.yi;
+        document.getElementById('RegisterProof').value = `r: ${zeroProof.r}, a: ${zeroProof.a}, c: ${zeroProof.c}`;
+    }
+
+    main();
+
+}
+
+function handleRegisterVote() {
+    if(Util.isEmpty(attendVote)){
+        alert('请先确认一个投票！')
+        return false;
+    }
+    if(Util.isEmpty(zeroProof)){
+        alert('请先生成证明！')
+        return false;
+    }
+    if (Util.isEmpty(parent.currAccount)) {
+        alert('请先解锁账户');
+        return false;
+    }
+
+    Vote.registerToVote(attendVote.vote, zeroProof.r, zeroProof.a, zeroProof.c, zeroProof.yi)
+        .then()
+        .catch(console.log);
 }
 
 function handleEncryptVote(vote_addr) {
@@ -200,76 +237,6 @@ function SetRadioOption(nameList) {
     };
 }
 
-function Register(index) {
-    if (voteAddress == undefined) return;
-
-    var web3 = parent.web3;
-    var abi = parent.voteAbi;
-    var account = parent.currAccount;
-    if (account == undefined) return;
-
-    var name = parent.web3.utils.utf8ToHex(document.getElementById("voterName").value);
-    var id = document.getElementById("voterID").value;
-
-    var voteContract = new web3.eth.Contract(abi, voteAddress);
-
-    voteContract.methods.GetVoteInfo().call(function(error, info) {
-        if (info[2] * 1000 < new Date().getTime()) {
-            alert(`投票注册已结束\n\n结束时间：${ParseTimeFormat(info[2] * 1000, " - ")}`)
-            return;
-        }
-        if (!info[5]) {
-            alert('公开投票无需申请投票资格!')
-            return
-        }
-        if (parent.currPwd == undefined || !parent.currAccount) {
-            alert("账号未解锁或账号不存在!");
-            return;
-        }
-
-        if (parent.isManager) {
-            var addr = document.getElementById("voterAccount").value;
-            if (!web3.utils.isAddress(addr)) {
-                alert("非法地址");
-                return;
-            }
-            web3.eth.personal.unlockAccount(parent.currAccount, parent.currPwd, (error, result) => {
-                if (error) {
-                    alert("账号出错");
-                } else {
-                    voteContract.methods.Register(index, addr, name, id).send({ from: account, password: parent.currPwd })
-                        .on('receipt', function(receipt) {
-                            if (receipt.events.Success.returnValues)
-                                alert("申请成功");
-                        })
-                        .on('error', function(error) {
-                            alert('申请出错')
-                        })
-                }
-            })
-
-        } else {
-            web3.eth.personal.unlockAccount(parent.currAccount, parent.currPwd, (error, result) => {
-                if (error) {
-                    alert("账号出错");
-                } else {
-                    voteContract.methods.RegisterSelf(index, name, id).send({ from: account, password: parent.currPwd })
-                        .on('receipt', function(receipt) {
-                            if (receipt.events.Success.returnValues)
-                                alert("申请成功");
-                        })
-                        .on('error', function(error) {
-                            alert('申请出错')
-                        })
-                }
-            })
-
-        }
-    })
-
-
-
-}
 
 function Vote() {
     if (voteAddress == undefined || radioOption == -1) return;
