@@ -47,7 +47,8 @@ class Vote {
         let c = parent.web3.utils.keccak256('' + g + yi + a);
         // console.log(`c: ${c} , ${Number(c)} `)
         c = Number(c) % p;
-        let r = BigInt(w - xi * c);
+        // let r = BigInt(w - xi * c);
+        let r = w - xi * c;
         console.log(`p: ${p}, g: ${g}, xi: ${xi}, yi: ${yi}, w: ${w}, r: ${r}, a: ${a}, c: ${c}`)
 
         let zeroProof = { r, a, c, yi };
@@ -90,6 +91,7 @@ class Vote {
         voterList.forEach(item => yiList.push(item.y));
         //计算加密投票
         let Yi = (yiList.reduce((x, y) => x * y) / currVoterYi); //去除i自己公钥的连乘
+        // console.log(`vote.js-calculateYi 去除i自己公钥的连乘Yi: ${currVoterYi}`)
         return new Promise(resolve => resolve(Yi));
     }
     static async geneEncProof(voteAddress, xi, voteNum) { //生成注册的证明
@@ -105,6 +107,7 @@ class Vote {
         let currVoterYi = Util.montgomery(g, xi, p);
         //计算加密投票
         let Yi = await this.calculateYi(voteInstance, currVoterYi); //去除i自己公钥的连乘
+
         let vencVi = g ** (2 ** (voteNum * q)) * Util.montgomery(Yi, xi, p);
 
         console.log(`Successful get the vote info when encrypting the voteing!
@@ -153,7 +156,7 @@ class Vote {
     static async encryptToVote(voteAddress, ajList, bjList, rjList, djList, c, vencVi, Yi, currVoterYi) {
         //获取投票实例
         let voteInstance = this.getVoteInstance(voteAddress);
-     
+
         //向该投票合约注册公钥
         voteInstance.methods.Encrypt(ajList, bjList, rjList, djList, c, vencVi, Yi, currVoterYi)
             .send({
@@ -181,7 +184,7 @@ class Vote {
 
 
     //3.解密   带有时间锁 t3时上链
-    static async decryptToVote(voteAddress, xi) {
+    static async geneDecProof(voteAddress, xi) {
         //获取投票实例
         let voteInstance = this.getVoteInstance(voteAddress);
         //获取投票参数
@@ -206,8 +209,14 @@ class Vote {
 
         console.log(`Successful calculate the ZK when decrypting the voteing!
             p: ${p}, g: ${g}, currVoterYi: ${currVoterYi}, Yi: ${Yi}, 
-            vdecVi: ${vdecVi}, r: ${r}, a1: ${a1}, a2: ${a2}, c: ${c}`)
+            vdecVi: ${vdecVi}, r: ${r}, a1: ${a1}, a2: ${a2}, c: ${c}`);
 
+        let zeroProof = { r, a1, a2, c, vdecVi, Yi, currVoterYi };
+        return zeroProof;
+    }
+    static async decryptToVote(voteAddress, r, a1, a2, c, vdecVi, Yi, currVoterYi) {
+        //获取投票实例
+        let voteInstance = this.getVoteInstance(voteAddress);
 
         //向该投票合约注册公钥
         voteInstance.methods.Decrypt(r, a1, a2, c, vdecVi, Yi, currVoterYi)
@@ -232,6 +241,7 @@ class Vote {
                 console.error(error)
             });
     }
+
 
     //4.构造投票 和decrypt相同的nonce 但付出更高的手续费 从而比decrypt具有更高的优先级
     static async constructVote(voteAddress, xi) {
