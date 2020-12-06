@@ -86,12 +86,16 @@ class Vote {
 
     //2.加密投票
     static async calculateYi(voteInstance, currVoterYi) {
-        let voterList = await this.getVoterInfo(voteInstance),
-            yiList = [];
-        voterList.forEach(item => yiList.push(item.y));
-        //计算加密投票
-        let Yi = (yiList.reduce((x, y) => x * y) / currVoterYi); //去除i自己公钥的连乘
-        // console.log(`vote.js-calculateYi 去除i自己公钥的连乘Yi: ${currVoterYi}`)
+        let voterList = await this.getVoterInfo(voteInstance);
+
+        //计算加密投票  序号在投票人之前的投票
+        let Yi =1;
+        for(let i=0;i<voterList.length;i++){
+            if(Number(voterList[i].y) === currVoterYi)  break;
+            Yi *= voterList[i].y;
+        }
+
+        console.log(voterList)
         return new Promise(resolve => resolve(Yi));
     }
     static async geneEncProof(voteAddress, xi, voteNum) { //生成注册的证明
@@ -244,7 +248,7 @@ class Vote {
 
 
     //4.构造投票 和decrypt相同的nonce 但付出更高的手续费 从而比decrypt具有更高的优先级
-    static async constructVote(voteAddress, xi) {
+    static async geneConProof(voteAddress, xi) {
         let voteInstance = this.getVoteInstance(voteAddress); //获取投票实例
         /* let voteInfo = await this.getVoteInfo(voteInstance);        //获取投票参数
         // let currGasPrice = await parent.web3.eth.getGasPrice();        //获取当前网络的gasprice*/
@@ -255,12 +259,16 @@ class Vote {
 
         let p = voteInfo[1].p,
             g = voteInfo[1].g,
-            currVoterYi = Util.montgomery(g, xi, p);
+            currVoterYi = Util.montgomery(g, xi, p),
+            hi = 1;
         console.log(voterList)
-        let temp = 1;
-        voterList.forEach(item => temp *= item.y);
-        let hi = temp / currVoterYi,
-            vassVi = Util.montgomery(hi, xi, p);
+
+
+        for(let i=voterList.length-1;i>=0;i--){
+            if( Number(voterList[i].y) === currVoterYi)   break;
+            hi *= voterList[i].y
+        }        
+        let vassVi = Util.montgomery(hi, xi, p);
 
 
         // 构造 ZK
@@ -276,6 +284,12 @@ class Vote {
             p: ${p}, g: ${g}, currVoterYi: ${currVoterYi}, hi: ${hi}, 
             vassVi: ${vassVi}, r: ${r}, a1: ${a1}, a2: ${a2}, c: ${c}`)
 
+        let zeroProof = { r, a1, a2, c, vassVi, hi, currVoterYi };
+        return zeroProof;
+    }
+    static async constructVote(voteAddress, r, a1, a2, c, vassVi, hi, currVoterYi) {
+        let voteInstance = this.getVoteInstance(voteAddress); //获取投票实例
+        let currGasPrice = await parent.web3.eth.getGasPrice();        //获取当前网络的gasprice
 
         //向该投票正式投票
         voteInstance.methods.Assist(r, a1, a2, c, vassVi, hi, currVoterYi)
@@ -303,7 +317,7 @@ class Vote {
     }
 
     //5. 若4未上链 3上链 则可执行恢复投票来得到4失败的投票vi
-    static async recoverVote(voteAddress, xi) {
+    static async geneRecProof(voteAddress, xi) {
         let voteInstance = this.getVoteInstance(voteAddress); //获取投票实例
         let [voteInfo, voterList] = await Promise.all([
             this.getVoteInfo(voteInstance), this.getVoterInfo(voteInstance)
@@ -345,6 +359,11 @@ class Vote {
             p: ${p}, g: ${g}, yiIndex: ${yiIndex}, yiBeforeMulti: ${yiBeforeMulti}, yiAfterMulti: ${yiAfterMulti}, voterList: [${voterList}],
             currVoterYi: ${currVoterYi}, hj: ${hj}, vrecVi: ${vrecVi}, r: ${r}, a1: ${a1}, a2: ${a2}, c: ${c}`)
 
+        let zeroProof = { r, a1, a2, c, vrecVi, hj, currVoterYi };
+        return zeroProof;
+    }
+    static async recoverVote(voteAddress, r, a1, a2, c, vrecVi, hj, currVoterYi) {
+        let voteInstance = this.getVoteInstance(voteAddress); //获取投票实例
 
         voteInstance.methods.Recover(r, a1, a2, c, vrecVi, hj, currVoterYi)
             .send({
@@ -375,6 +394,7 @@ class Vote {
         let [voteInfo, voterList] = await Promise.all([
             this.getVoteInfo(voteInstance), this.getVoterInfo(voteInstance)
         ]);
+        console.log(voteInfo);
 
         let failerList = [],
             honestList = [];

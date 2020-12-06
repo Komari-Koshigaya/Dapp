@@ -103,13 +103,14 @@ function handleGeneRegProof() {
         }
         console.log(zeroProof);
         document.getElementById('PublicKey').value = zeroProof.yi;
-        document.getElementById('RegisterProof').value = parent.web3.utils.toHex(zeroProof).slice(2);//解密证明 的十六进制数
+        document.getElementById('RegisterProof').value = parent.web3.utils.toHex(zeroProof).slice(2); //解密证明 的十六进制数
         // document.getElementById('RegisterProof').value = `r: ${zeroProof.r}, a: ${zeroProof.a}, c: ${zeroProof.c}`;
     }
 
     main();
 
 }
+
 function handleRegVote() {
     if (checkParaBeforeSendChain() === false) return;
 
@@ -128,7 +129,8 @@ function handleGeneEncProof() {
 
     let result = prompt("请输入私钥和候选人编号,如: 61,1");
     result = result.split(",");
-    let xi = Number(result[0]), voteNum = Number(result[1]);
+    let xi = Number(result[0]),
+        voteNum = Number(result[1]);
     console.log(xi + ' ' + voteNum)
 
     let main = async () => {
@@ -140,21 +142,22 @@ function handleGeneEncProof() {
         }
         console.log(zeroProof);
         document.getElementById('EncryptVote').value = zeroProof.vencVi;
-        document.getElementById('EncryptProof').value = parent.web3.utils.toHex(zeroProof).slice(2);//解密证明 的十六进制数
+        document.getElementById('EncryptProof').value = parent.web3.utils.toHex(zeroProof).slice(2); //解密证明 的十六进制数
     }
 
     main();
 }
+
 function handleEncVote(vote_addr) {
     if (checkParaBeforeSendChain() === false) return;
 
     Vote.encryptToVote(attendVote.vote, zeroProof.ajList, zeroProof.bjList, zeroProof.rjList, zeroProof.djList, zeroProof.c, zeroProof.vencVi, zeroProof.Yi, zeroProof.currVoterYi)
-        .then(()=>confirm("加密投票成功!"))
+        .then(() => confirm("加密投票成功!"))
         .catch(console.log);
 }
 
 /////////////////////////////////////////////////step3 decrypt
-function handleGeneDecProof(){
+function handleGeneDecProof() {
     let xi = checkParaBeforeGeneProof();
     if (xi === -1) return false;
 
@@ -167,34 +170,103 @@ function handleGeneDecProof(){
         }
         console.log(zeroProof);
         document.getElementById('DecryptVote').value = zeroProof.vdecVi;
-        document.getElementById('DecryptProof').value = parent.web3.utils.toHex(zeroProof).slice(2);//解密证明 的十六进制数
+        document.getElementById('DecryptProof').value = parent.web3.utils.toHex(zeroProof).slice(2); //解密证明 的十六进制数
     }
 
     main();
 }
+
 function handleDecVote(vote_addr, xi) {
-    
+
     if (checkParaBeforeSendChain() === false) return;
 
-    Vote.decryptToVote(attendVote.vote, zeroProof.r, zeroProof.a1, zeroProof.a2, zeroProof.c, zeroProof.vdecVi,  zeroProof.Yi, zeroProof.currVoterYi)
-        .then(()=>confirm("解密投票成功!"))
+    Vote.decryptToVote(attendVote.vote, zeroProof.r, zeroProof.a1, zeroProof.a2, zeroProof.c, zeroProof.vdecVi, zeroProof.Yi, zeroProof.currVoterYi)
+        .then(() => confirm("解密投票成功!"))
         .catch(console.log);
 }
 
-//step4 assist
-function handleConstructVote(vote_addr, xi) {
-    Vote.constructVote(test_address, test_xi);
+///////////////////////////////////////////////////step4 assist
+function handleGeneConProof() {
+    let xi = checkParaBeforeGeneProof();
+    if (xi === -1) return false;
+
+    let main = async () => {
+        zeroProof = await Vote.geneConProof(attendVote.vote, xi);
+
+        if (Util.isEmpty(zeroProof)) {
+            alert('自动生成出错！')
+            return;
+        }
+        console.log(zeroProof);
+        document.getElementById('AssistVote').value = zeroProof.vassVi;
+        document.getElementById('AssistProof').value = parent.web3.utils.toHex(zeroProof).slice(2); //解密证明 的十六进制数
+    }
+
+    main();
 }
 
-//step5 recover
-function handleRecoverVote(vote_addr, xi) {
-    Vote.recoverVote(test_address, test_xi);
+function handleConVote(vote_addr, xi) {
+    if (checkParaBeforeSendChain() === false) return;
+
+    Vote.constructVote(attendVote.vote, zeroProof.r, zeroProof.a1, zeroProof.a2, zeroProof.c, zeroProof.vassVi, zeroProof.hi, zeroProof.currVoterYi)
+        .then(() => confirm("构造投票成功!"))
+        .catch(console.log);
+
 }
 
-//tally vote result phrase
+///////////////////////////////////////////////////step5 recover
+function handleGeneRecProof() {
+    let xi = checkParaBeforeGeneProof();
+    if (xi === -1) return false;
+
+    let main = async () => {
+        zeroProof = await Vote.geneRecProof(attendVote.vote, xi);
+
+        if (Util.isEmpty(zeroProof)) {
+            alert('自动生成出错！')
+            return;
+        }
+        console.log(zeroProof);
+        document.getElementById('RecoverVote').value = zeroProof.vrecVi;
+        document.getElementById('RecoverProof').value = parent.web3.utils.toHex(zeroProof).slice(2); //解密证明 的十六进制数
+    }
+
+    main();
+}
+
+function handleRecVote(vote_addr, xi) {
+    if (checkParaBeforeSendChain() === false) return;
+
+    Vote.recoverVote(attendVote.vote, zeroProof.r, zeroProof.a1, zeroProof.a2, zeroProof.c, zeroProof.vrecVi, zeroProof.hj, zeroProof.currVoterYi)
+        .then(() => confirm("恢复投票成功!"))
+        .catch(console.log);
+
+}
+
+///////////////////////////////////////////////////tally vote result phrase
+function handleSerAndTallyVote(vote_addr) {
+
+    handleSearchVote();
+
+    setTimeout(handleTallyVote, 1000);
+
+    // handleTallyVote();
+}
+
 function handleTallyVote(vote_addr) {
-    Vote.tallyVote(test_address);
+    confirm('正在计算投票结果！请稍等...' + attendVote.name);
+    
+    Vote.tallyVote(attendVote.vote)
+        .then((tallyGvi) => {
+            document.getElementById('CandidateName').value = tallyGvi;
+        })
+        .catch(() => confirm('计算投票结果出错！投票还未结束!'));
 }
+
+
+
+
+
 
 
 

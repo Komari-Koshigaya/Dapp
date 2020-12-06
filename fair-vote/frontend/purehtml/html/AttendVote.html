@@ -1,23 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-
     <link rel="stylesheet" href="../CSS/attendVote.css" type="text/css">
     <link rel="stylesheet" href="../CSS/popUps.css" type="text/css">
-
     <script src="../js/voteRepository.js"></script>
     <script src="../js/voteFactoryRepository.js"></script>
     <script src="../js/config.js"></script>
     <script src="../js/utils.js"></script>
     <script src="../js/vote.js"></script>
     <script src="../js/voteFactory.js"></script>
-    
     <script src="../js/voteAttendEventHandler.js"></script>
-
 </head>
+
 <body>
     <div class="option">
         <ul class="left-option">
@@ -29,25 +27,25 @@
         </ul>
     </div>
     <div class="search">
-        <select class="search-select" id="searchSelect"  onchange="SearchBaseChange(this.selectedIndex)">
+        <select class="search-select" id="searchSelect" onchange="SearchBaseChange(this.selectedIndex)">
             <option value="0">地址</option>
             <option value="1">名称</option>
         </select>
         <input class="textarea-search" placeholder="请输入投票地址..." id="SearchText"></input>
         <img src="../images/search.png" class="img-search" onclick="handleSearchVote()">
     </div>
-        <div class="vote-info">
-            <p class="vote-name" name="voteName">投票名称</p>
-        </div>
+    <div class="vote-info">
+        <p class="vote-name" name="voteName">投票名称</p>
+    </div>
     <div class="page" id="RegisterPage">
         <div class="info-div">
             <div class="list-div">
-                <p class="label" >公钥：</p>
+                <p class="label">公钥：</p>
                 <input class="input-textarea" id="PublicKey"></input>
             </div>
             <div class="list-div" style="height: 120px;">
                 <p class="label">证明：</p>
-                <textarea class="input-textarea" style="height: 75%;" id="RegisterProof"></textarea>
+                <textarea class="input-textarea" style="overflow:scroll; overflow-x:hidden;height: 75%;" id="RegisterProof"></textarea>
             </div>
         </div>
         <div class="btnRegister-div">
@@ -79,7 +77,7 @@
             </div>
             <div class="list-div" style="height: 120px;">
                 <p class="label">证明：</p>
-                <textarea class="input-textarea" style="height: 75%;" id="DecryptProof"></textarea>
+                <textarea class="input-textarea" style="overflow:scroll; overflow-x:hidden;height: 75%;" id="DecryptProof"></textarea>
                 <!-- <input class="input-textarea" id="DecryptProof"></input> -->
             </div>
         </div>
@@ -96,12 +94,12 @@
             </div>
             <div class="list-div" style="height: 120px;">
                 <p class="label">证明：</p>
-                <textarea class="input-textarea" style="height: 75%;" id="AssistProof"></textarea>
+                <textarea class="input-textarea" style="overflow:scroll; overflow-x:hidden;height: 75%;" id="AssistProof"></textarea>
             </div>
         </div>
         <div class="btnRegister-div">
-            <button class="button-register" onclick="popBox()">自动生成</button>
-            <button class="button-register" onclick="Send()">上链</button>
+            <button class="button-register" onclick="handleGeneConProof()">自动生成</button>
+            <button class="button-register" onclick="handleConVote()">上链</button>
         </div>
     </div>
     <div class="page" id="RecoverPage" style="display: none;">
@@ -112,34 +110,32 @@
             </div>
             <div class="list-div" style="height: 120px;">
                 <p class="label">证明：</p>
-                <textarea class="input-textarea" style="height: 75%;" id="RecoverProof"></textarea>
+                <textarea class="input-textarea" style="overflow:scroll; overflow-x:hidden;height: 75%;" id="RecoverProof"></textarea>
             </div>
         </div>
         <div class="btnRegister-div">
-            <button class="button-register" onclick="popBox()">自动生成</button>
-            <button class="button-register" onclick="Send()">上链</button>
+            <button class="button-register" onclick="handleGeneRecProof()">自动生成</button>
+            <button class="button-register" onclick="handleRecVote()">上链</button>
         </div>
     </div>
-
-<div id="popLayer"></div>
-<div id="popBox">
-    <div class="close">
-        <a href="javascript:void(0)" onclick="closeBox()">X</a>
+    <div id="popLayer"></div>
+    <div id="popBox">
+        <div class="close">
+            <a href="javascript:void(0)" onclick="closeBox()">X</a>
+        </div>
+        <div class="center">
+            <p class="label1">私钥：</p>
+            <input class="input-textarea1" id="voteXi"></input>
+        </div>
+        <div class="down">
+            <a href="javascript:void(0)" onclick="closeBox()">确定</a>
+        </div>
     </div>
-    <div class="center">
-        <p class="label1">私钥：</p>
-        <input class="input-textarea1" id="voteXi"></input>
-    </div>
-
-    <div class="down">
-        <a href="javascript:void(0)" onclick="closeBox()">确定</a>
-    </div>
-</div>
-
 </body>
 <script>
-    // handleSearchVote();
+// handleSearchVote();
 
-    LeftOption(0);
+LeftOption(0);
 </script>
+
 </html>

@@ -6,8 +6,14 @@
     <title>Document</title>
 
     <link rel="stylesheet" href="../CSS/resultVote.css" type="text/css">
-    <script src="../JS/Utils.js"></script>
-    <script src="../JS/ResultVote.js"></script>
+
+    <script src="../js/voteRepository.js"></script>
+    <script src="../js/voteFactoryRepository.js"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/vote.js"></script>
+    <script src="../js/voteFactory.js"></script>
+    <script src="../js/voteAttendEventHandler.js"></script>
 </head>
 <body>
     <div class="option">
@@ -21,7 +27,7 @@
             <option value="1">名称</option>
         </select>
         <input class="textarea-search" placeholder="请输入投票地址..." id="SearchText"></input>
-        <img src="../images/search.png" class="img-search" onclick="Search()">
+        <img src="../images/search.png" class="img-search" onclick="handleSerAndTallyVote()">
     </div>
     <div class="page">
          <div class="vote-info">
