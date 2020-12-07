@@ -79,7 +79,7 @@ contract Vote {
     
     //注册函数
     function Register(uint r, uint a, uint c, uint y) public {
-        // require(_timeValue.registerEndTime > now, "Not Register Time.");
+        require(_timeValue.registerEndTime > now, "Not Register Time.");
         uint m = Montgomery(y,c,_ElGamalValue.p);
         uint n = Montgomery(_ElGamalValue.g,r,_ElGamalValue.p);
         

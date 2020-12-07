@@ -89,9 +89,9 @@ class Vote {
         let voterList = await this.getVoterInfo(voteInstance);
 
         //计算加密投票  序号在投票人之前的投票
-        let Yi =1;
-        for(let i=0;i<voterList.length;i++){
-            if(Number(voterList[i].y) === currVoterYi)  break;
+        let Yi = 1;
+        for (let i = 0; i < voterList.length; i++) {
+            if (Number(voterList[i].y) === currVoterYi) break;
             Yi *= voterList[i].y;
         }
 
@@ -172,11 +172,7 @@ class Vote {
                 console.log(receipt)
                 let result = receipt.events.NewResult.returnValues; //event的返回值
                 if (result.status) { //合约验证通过
-                    layer.alert(`${result.status}  向 ${voteInstance._address} 加密投票成功！`, {
-                        skin: 'layui-layer-molv' //样式类名
-                            ,
-                        closeBtn: 0
-                    });
+                    confirm("加密投票成功!")
                 } else //合约验证失败
                     console.warn(`${result.status}  向 ${voteInstance._address} 加密投票失败, ${result.msg}`);
             })
@@ -234,10 +230,10 @@ class Vote {
                 let result = receipt.events.NewResult.returnValues; //event的返回值
                 if (result.status) { //合约验证通过
                     let msg = `${result.status}  向 ${voteInstance._address} 解密投票 成功！`;
-                    layer.msg(msg, { time: 2000, icon: 1 });
+                    confirm( msg )
                 } else { //合约验证失败
                     let msg = `${result.status}  向 ${voteInstance._address} 解密投票 失败, ${result.msg}`;
-                    layer.msg(msg, { time: 2000, icon: 2 });
+                    alert(msg)
                 }
             })
             .on('error', function(error) {
@@ -264,10 +260,10 @@ class Vote {
         console.log(voterList)
 
 
-        for(let i=voterList.length-1;i>=0;i--){
-            if( Number(voterList[i].y) === currVoterYi)   break;
+        for (let i = voterList.length - 1; i >= 0; i--) {
+            if (Number(voterList[i].y) === currVoterYi) break;
             hi *= voterList[i].y
-        }        
+        }
         let vassVi = Util.montgomery(hi, xi, p);
 
 
@@ -289,7 +285,7 @@ class Vote {
     }
     static async constructVote(voteAddress, r, a1, a2, c, vassVi, hi, currVoterYi) {
         let voteInstance = this.getVoteInstance(voteAddress); //获取投票实例
-        let currGasPrice = await parent.web3.eth.getGasPrice();        //获取当前网络的gasprice
+        let currGasPrice = await parent.web3.eth.getGasPrice(); //获取当前网络的gasprice
 
         //向该投票正式投票
         voteInstance.methods.Assist(r, a1, a2, c, vassVi, hi, currVoterYi)
@@ -304,10 +300,10 @@ class Vote {
                 let result = receipt.events.NewResult.returnValues; //event的返回值
                 if (result.status) { //合约验证通过
                     let msg = `${result.status}  向 ${voteInstance._address} 构造投票 成功！`;
-                    layer.msg(msg, { time: 2000, icon: 1 });
+                    confirm(msg)
                 } else { //合约验证失败
                     let msg = `${result.status}  向 ${voteInstance._address} 构造投票 失败, ${result.msg}`;
-                    layer.msg(msg, { time: 2000, icon: 2 });
+                    alert(msg)
                 }
             })
             .on('error', function(error) {
@@ -401,15 +397,22 @@ class Vote {
         voterList.forEach((item, index) => {
             if (item.notFailer === false || item.isHonest === false) { //投票失败者集合
                 failerList.push(item);
-
             } else honestList.push(item); //投票成功者集合
         });
 
+        console.log(honestList)
+        console.log('failer:')
+        console.log(failerList)
         let tallyGvi = 1;
         if (failerList.length === 0) { //所有人均诚实投票
-            for (let item of failerList) {
-                tallyGvi *= (item.venc / item.vass);
+            let allVenc = 1, allVass = 1;
+            for (let item of honestList) {
+                allVenc *= item.venc;
+                allVass *= item.vass;
+                // tallyGvi *= (item.venc / item.vass);
             }
+            tallyGvi = allVenc / allVass;
+            console.log('cal vi when there are not failers: ' + tallyGvi)
         } else {
             let honestTallyGvi = 1,
                 failerTallyGvi = 1;
@@ -422,10 +425,26 @@ class Vote {
                 failerTallyGvi *= item.venc * item.vdec;
             }
             tallyGvi = honestTallyGvi * failerTallyGvi;
+            console.log('cal vi when there are failers: ' + tallyGvi)
+        }
+
+        let o = Number(voteInfo[3]), q= Number(voteInfo[4]),maxLen = o * (2 ** ( (o -1) * q ) ) , g = Number(voteInfo[1].g), vi = 0;
+        for(let i=0;i<=maxLen;i++){
+            if( g**i === tallyGvi )  vi = i;
+        }
+
+        let candidate = new Array(o), winner = 0;
+        candidate[0]= vi % (2 ** q), 
+        candidate[1]=((vi-candidate[0]) % (2**(2*q))) / (2 ** q), 
+        candidate[2]=(vi-candidate[0]-candidate[1]*(2 ** q)) / (2**(2*q*q));
+
+        for(let i=0;i<o;i++){
+            if(candidate[i] > candidate[winner]) winner = i;
         }
 
         console.log(`Successful talling the vote!
-            failerList: [${failerList}], honestList: [${honestList}], tallyGvi: ${tallyGvi}, `)
-        return tallyGvi;
+            failerList: [${failerList}], honestList: [${honestList}], tallyGvi: ${tallyGvi}, 
+            vi: ${vi}, maxLen: ${maxLen}, candidate: [${candidate}], winner: ${winner} `)
+        return winner;
     }
 }

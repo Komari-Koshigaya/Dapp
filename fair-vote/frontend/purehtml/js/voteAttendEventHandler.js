@@ -152,7 +152,7 @@ function handleEncVote(vote_addr) {
     if (checkParaBeforeSendChain() === false) return;
 
     Vote.encryptToVote(attendVote.vote, zeroProof.ajList, zeroProof.bjList, zeroProof.rjList, zeroProof.djList, zeroProof.c, zeroProof.vencVi, zeroProof.Yi, zeroProof.currVoterYi)
-        .then(() => confirm("加密投票成功!"))
+        .then()
         .catch(console.log);
 }
 
@@ -181,7 +181,7 @@ function handleDecVote(vote_addr, xi) {
     if (checkParaBeforeSendChain() === false) return;
 
     Vote.decryptToVote(attendVote.vote, zeroProof.r, zeroProof.a1, zeroProof.a2, zeroProof.c, zeroProof.vdecVi, zeroProof.Yi, zeroProof.currVoterYi)
-        .then(() => confirm("解密投票成功!"))
+        .then()
         .catch(console.log);
 }
 
@@ -209,7 +209,7 @@ function handleConVote(vote_addr, xi) {
     if (checkParaBeforeSendChain() === false) return;
 
     Vote.constructVote(attendVote.vote, zeroProof.r, zeroProof.a1, zeroProof.a2, zeroProof.c, zeroProof.vassVi, zeroProof.hi, zeroProof.currVoterYi)
-        .then(() => confirm("构造投票成功!"))
+        .then()
         .catch(console.log);
 
 }
@@ -238,14 +238,14 @@ function handleRecVote(vote_addr, xi) {
     if (checkParaBeforeSendChain() === false) return;
 
     Vote.recoverVote(attendVote.vote, zeroProof.r, zeroProof.a1, zeroProof.a2, zeroProof.c, zeroProof.vrecVi, zeroProof.hj, zeroProof.currVoterYi)
-        .then(() => confirm("恢复投票成功!"))
+        .then()
         .catch(console.log);
 
 }
 
 ///////////////////////////////////////////////////tally vote result phrase
 function handleSerAndTallyVote(vote_addr) {
-
+    document.getElementById('CandidateName').value = '';
     handleSearchVote();
 
     setTimeout(handleTallyVote, 1000);
@@ -258,7 +258,7 @@ function handleTallyVote(vote_addr) {
     
     Vote.tallyVote(attendVote.vote)
         .then((tallyGvi) => {
-            document.getElementById('CandidateName').value = tallyGvi;
+            document.getElementById('CandidateName').value = tallyGvi + '号候选人';
         })
         .catch(() => confirm('计算投票结果出错！投票还未结束!'));
 }
